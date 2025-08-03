@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QAP CONCURSEIROS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 40; }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; }
+        .active-tab { border-bottom: 2px solid #3b82f6; }
+        .sidebar-btn.active { background-color: #3b82f6; color: white; }
+        .concurso-item.active { background-color: #3b82f6; color: white; }
+        #timer-display { font-family: 'Poppins', sans-serif; font-weight: 700; }
+        .timer-ui-element { transition: opacity 0.5s ease-in-out; }
+        .timer-ui-element.fade-out { opacity: 0; }
+        .rating .star { color: #4b5563; }
+        .rating .star.selected, .rating .star:hover, .rating .star:hover ~ .star { color: #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans antialiased">
+
+    <!-- Container Principal -->
+    <div id="main-container" class="flex flex-col md:flex-row min-h-screen">
+
+        <!-- Barra Lateral Esquerda -->
+        <aside class="w-full md:w-1/4 bg-gray-800 p-4 border-r border-gray-700 flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-white">QAP CONCURSEIROS</h1>
+            </div>
+            <div class="mb-4">
+                <button id="open-add-materia-modal-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i> Cadastrar nova Matéria
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto flex-grow">
+                <ul id="main-nav-list">
+                    <!-- Botões Menu Principal, Desempenho e Metas -->
+                </ul>
+                <hr class="border-gray-700 my-2">
+                <h3 class="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Matérias</h3>
+                <ul id="materias-list">
+                    <!-- Matérias serão inseridas aqui via JS -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Painel Principal Direito -->
+        <main class="w-full md:w-3/4 p-6 overflow-y-auto relative">
+            
+            <!-- Botão de Configurações -->
+            <button id="open-settings-btn" class="fixed top-6 right-6 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-all opacity-50 hover:opacity-100">
+                <i class="fas fa-cog"></i>
+            </button>
+
+            <!-- PAINEL MENU PRINCIPAL -->
+            <div id="menu-principal-panel">
+                 <h2 class="text-3xl font-semibold mb-6">Olá, Concurseiro. Bem-vindo!</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Card Aproveitamento -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h4 class="font-semibold text-gray-400 mb-4">Aproveitamento Geral</h4>
+                        <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
+                            <div id="geral-aproveitamento-bar" class="bg-blue-600 h-4 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="geral-aproveitamento-text" class="text-right font-bold text-lg">0%</p>
+                        <div class="flex justify-between mt-4 text-center">
+                            <div>
+                                <p id="melhor-materia-nota" class="text-green-400 font-bold text-xl">N/A</p>
+                                <p class="text-xs text-gray-500">MELHOR MATÉRIA</p>
+                            </div>
+                             <div>
+                                <p id="pior-materia-nota" class="text-red-400 font-bold text-xl">N/A</p>
+                                <p class="text-xs text-gray-500">PIOR MATÉRIA</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Frase do Dia -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col justify-center">
+                        <h4 class="font-semibold text-gray-400 mb-4">Frase do Dia</h4>
+                        <blockquote class="text-lg italic">
+                            <p id="frase-do-dia">Carregando...</p>
+                            <footer id="autor-da-frase" class="text-sm text-gray-500 mt-2"></footer>
+                        </blockquote>
+                    </div>
+                 </div>
+
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Card Meus Concursos -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-semibold text-gray-400">Meus Concursos</h4>
+                            <button id="open-add-concurso-modal-btn" class="text-gray-500 hover:text-white"><i class="fas fa-plus-circle"></i></button>
+                        </div>
+                        <div id="concursos-list" class="space-y-2 mb-4"></div>
+                        <div id="countdown-container" class="flex justify-around text-center">
+                            <!-- Conteúdo do contador -->
+                        </div>
+                    </div>
+                    <!-- Card Últimas Sessões -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h4 class="font-semibold text-gray-400 mb-4">Últimas Sessões Registradas</h4>
+                        <ul id="last-sessions-list" class="space-y-3 text-sm">
+                            <!-- Conteúdo das sessões -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="font-semibold text-gray-400 mb-4">Resumo de Estudo Semanal (Horas)</h4>
+                    <canvas id="weekly-study-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- PAINEL DESEMPENHO -->
+            <div id="desempenho-panel" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Coluna Principal: Análise de Performance -->
+                    <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">Análise de Performance</h3>
+                        <div class="hidden md:grid grid-cols-12 gap-4 text-sm text-gray-400 font-bold px-4 pb-2 border-b border-gray-700">
+                            <div class="col-span-5">DISCIPLINA</div>
+                            <div class="col-span-2 text-center">TOTAL</div>
+                            <div class="col-span-5 text-center">ACERTOS / ERROS</div>
+                        </div>
+                        <div id="dashboard-desempenho-materias" class="space-y-2 mt-2">
+                             <p class="text-gray-500 p-4 text-center">Adicione matérias e resolva questões para ver sua performance.</p>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Lateral: Gráfico -->
+                    <div class="space-y-6">
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h4 class="font-semibold mb-4 text-center">Desempenho Geral</h4>
+                            <div class="relative w-full max-w-xs mx-auto">
+                                <canvas id="geral-performance-chart"></canvas>
+                                <div id="geral-performance-text" class="absolute inset-0 flex items-center justify-center text-2xl font-bold"></div>
+                            </div>
+                            <div id="chart-legend" class="flex justify-center space-x-4 mt-4 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL METAS -->
+            <div id="metas-panel" class="hidden">
+                <h2 class="text-3xl font-semibold mb-6">Metas de Estudo</h2>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <div class="space-y-6">
+                        <!-- Meta Diária -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="font-bold">Meta Diária</label>
+                                <span id="progresso-diario-texto" class="text-sm text-gray-400">0h / 0h</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-diario-barra" class="bg-green-600 h-6 rounded-full" style="width: 0%"></div></div>
+                        </div>
+                        <!-- Meta Semanal -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="font-bold">Meta Semanal</label>
+                                <span id="progresso-semanal-texto" class="text-sm text-gray-400">0h / 0h</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-semanal-barra" class="bg-yellow-500 h-6 rounded-full" style="width: 0%"></div></div>
+                        </div>
+                        <!-- Meta Mensal -->
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="font-bold">Meta Mensal</label>
+                                <span id="progresso-mensal-texto" class="text-sm text-gray-400">0h / 0h</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-mensal-barra" class="bg-purple-600 h-6 rounded-full" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL MATÉRIA -->
+            <div id="materia-panel" class="hidden">
+                <h2 id="materia-title" class="text-3xl font-bold mb-6"></h2>
+                <div class="mb-4 border-b border-gray-700">
+                    <nav class="flex space-x-4" aria-label="Tabs">
+                        <a href="#" id="tab-questoes" class="tab-link active-tab text-white px-3 py-2 font-medium text-sm rounded-t-md">Questões Resolvidas</a>
+                        <a href="#" id="tab-horas" class="tab-link text-gray-400 hover:text-white px-3 py-2 font-medium text-sm rounded-t-md">Horas de Estudo</a>
+                    </nav>
+                </div>
+                <div id="tab-content-questoes">
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-4">Gerenciar Assuntos</h3>
+                        <div class="flex mb-4">
+                            <input type="text" id="new-assunto-input" class="bg-gray-700 text-white border border-gray-600 rounded-l-lg p-2 flex-grow" placeholder="Novo Assunto...">
+                            <button id="add-assunto-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-lg"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <button id="gerar-assuntos-sugeridos-btn" class="w-full mb-4 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-lg">Gerar Assuntos Sugeridos ✨</button>
+                        <div id="assuntos-list" class="space-y-3"></div>
+                    </div>
+                </div>
+                <div id="tab-content-horas" class="hidden">
+                     <div class="bg-gray-800 p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
+                             <h3 class="text-xl font-semibold">Registro de Tempo de Estudo</h3>
+                             <button id="open-add-tempo-modal-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-clock"></i> Adicionar Tempo</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-center">
+                            <div class="bg-gray-700 p-3 rounded-lg"><h4 class="font-semibold">Hoje</h4><p id="tempo-hoje">0h 0m</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><h4 class="font-semibold">Esta Semana</h4><p id="tempo-semana">0h 0m</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><h4 class="font-semibold">Este Mês</h4><p id="tempo-mes">0h 0m</p></div>
+                            <div class="bg-gray-700 p-3 rounded-lg"><h4 class="font-semibold">Total Geral</h4><p id="tempo-total">0h 0m</p></div>
+                        </div>
+                        <table class="w-full text-left"><thead class="bg-gray-700"><tr><th class="p-2">Data</th><th class="p-2">Tempo Estudado</th><th class="p-2">Ações</th></tr></thead><tbody id="tempo-table-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões Flutuantes -->
+            <div class="fixed bottom-6 right-6 flex items-center space-x-2 z-30">
+                <button id="open-timer-setup-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold h-16 px-4 rounded-full flex items-center justify-center shadow-lg transition-all">
+                    <i class="fas fa-stopwatch fa-lg"></i>
+                    <span id="timer-bar-display" class="ml-2 text-lg">00:00:00</span>
+                </button>
+                <button id="open-quick-add-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110">
+                    <i class="fas fa-plus fa-2x"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tela do Cronômetro -->
+    <div id="timer-screen" class="hidden fixed inset-0 bg-black text-white flex-col items-center justify-center z-50">
+        <div id="timer-header" class="timer-ui-element absolute top-10 text-center">
+            <p id="timer-info-materia" class="text-2xl mb-2"></p>
+            <p id="timer-info-assunto" class="text-4xl font-bold"></p>
+        </div>
+        <div id="timer-display" class="text-8xl md:text-9xl font-bold">00:00:00</div>
+        <div id="timer-controls" class="timer-ui-element absolute bottom-10 flex space-x-8">
+            <button id="timer-pause-resume-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-2xl">Pausar</button>
+            <button id="timer-finish-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-2xl">Finalizar</button>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <div id="finish-session-modal-backdrop" class="modal-backdrop"></div>
+    <div id="finish-session-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-6">Finalizar Sessão</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-300">Nível de Aprendizagem</label>
+                <div id="learning-rating" class="rating flex justify-center text-4xl cursor-pointer">
+                    <i class="far fa-star star" data-value="1"></i>
+                    <i class="far fa-star star" data-value="2"></i>
+                    <i class="far fa-star star" data-value="3"></i>
+                    <i class="far fa-star star" data-value="4"></i>
+                    <i class="far fa-star star" data-value="5"></i>
+                </div>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-300">Questões</label>
+                <div class="flex gap-4">
+                    <input type="number" id="finish-session-resolvidas" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Resolvidas">
+                    <input type="number" id="finish-session-acertadas" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Acertadas">
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="confirm-finish-session-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salvar Sessão</button>
+        </div>
+    </div>
+    <div id="timer-setup-modal-backdrop" class="modal-backdrop"></div>
+    <div id="timer-setup-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-6">Iniciar Cronômetro</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="timer-setup-materia" class="block mb-2 text-sm font-medium text-gray-300">Matéria</label>
+                <select id="timer-setup-materia" class="w-full bg-gray-700 p-2 rounded border border-gray-600"></select>
+            </div>
+            <div>
+                <label for="timer-setup-assunto" class="block mb-2 text-sm font-medium text-gray-300">Assunto/Tópico</label>
+                <input type="text" id="timer-setup-assunto" list="timer-assuntos-datalist" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Digite ou selecione um assunto">
+                <datalist id="timer-assuntos-datalist"></datalist>
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="cancel-timer-setup-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-timer-setup-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Iniciar Atividade</button>
+        </div>
+    </div>
+    <div id="settings-modal-backdrop" class="modal-backdrop"></div>
+    <div id="settings-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-6">Configurações</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="settings-meta-diaria" class="block mb-2 text-sm font-medium text-gray-300">Meta Diária (Horas)</label>
+                <input type="number" id="settings-meta-diaria" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
+            </div>
+            <div>
+                <label for="settings-meta-semanal" class="block mb-2 text-sm font-medium text-gray-300">Meta Semanal (Horas)</label>
+                <input type="number" id="settings-meta-semanal" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
+            </div>
+            <div>
+                <label for="settings-meta-mensal" class="block mb-2 text-sm font-medium text-gray-300">Meta Mensal (Horas)</label>
+                <input type="number" id="settings-meta-mensal" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="cancel-settings-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-settings-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+    <div id="add-materia-modal-backdrop" class="modal-backdrop"></div>
+    <div id="add-materia-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-4">Cadastrar Nova Matéria</h3>
+        <input type="text" id="add-materia-input" class="w-full bg-gray-700 p-2 rounded mb-6" placeholder="Nome da Matéria...">
+        <div class="flex justify-end gap-4">
+            <button id="cancel-add-materia-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-add-materia-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+    <div id="add-concurso-modal-backdrop" class="modal-backdrop"></div>
+    <div id="add-concurso-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-4">Adicionar Concurso</h3>
+        <input type="text" id="concurso-name-input" class="w-full bg-gray-700 p-2 rounded mb-6" placeholder="Ex: PC-TO">
+        <div class="flex justify-end gap-4">
+            <button id="cancel-add-concurso-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-add-concurso-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+    <div id="date-modal-backdrop" class="modal-backdrop"></div>
+    <div id="date-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 id="date-modal-title" class="text-xl font-bold mb-4">Definir Data da Prova</h3>
+        <input type="date" id="prova-date-input" class="w-full bg-gray-700 p-2 rounded mb-6">
+        <div class="flex justify-end gap-4">
+            <button id="cancel-date-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-date-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+    <div id="add-tempo-modal-backdrop" class="modal-backdrop"></div>
+    <div id="add-tempo-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg"><h3 class="text-xl font-bold mb-4">Adicionar Tempo de Estudo</h3><div class="mb-4"><label for="tempo-data" class="block mb-2">Data</label><input type="date" id="tempo-data" class="w-full bg-gray-700 p-2 rounded"></div><div class="flex gap-4 mb-6"><div><label for="tempo-horas" class="block mb-2">Horas</label><input type="number" id="tempo-horas" min="0" class="w-full bg-gray-700 p-2 rounded" placeholder="0"></div><div><label for="tempo-minutos" class="block mb-2">Minutos</label><input type="number" id="tempo-minutos" min="0" max="59" class="w-full bg-gray-700 p-2 rounded" placeholder="0"></div></div><div class="flex justify-end gap-4"><button id="cancel-add-tempo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button><button id="confirm-add-tempo-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button></div></div>
+    <div id="edit-materia-modal-backdrop" class="modal-backdrop"></div>
+    <div id="edit-materia-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg"><h3 class="text-xl font-bold mb-4">Editar Matéria</h3><input type="text" id="edit-materia-input" class="w-full bg-gray-700 p-2 rounded mb-6"><div class="flex justify-end gap-4"><button id="cancel-edit-materia-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button><button id="confirm-edit-materia-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button></div></div>
+    <div id="gemini-modal-backdrop" class="modal-backdrop"></div>
+    <div id="gemini-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/2 shadow-lg"><h3 id="gemini-modal-title" class="text-xl font-bold mb-4">✨ Sugestão da IA</h3><div id="gemini-modal-content" class="bg-gray-700 p-4 rounded-md max-h-80 overflow-y-auto"><p id="gemini-loading" class="text-center">Gerando...</p><div id="gemini-response"></div></div><div class="flex justify-end mt-6"><button id="close-gemini-modal-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg">Fechar</button></div></div>
+    
+    <!-- Modal Adicionar Sessão Rápida -->
+    <div id="quick-add-modal-backdrop" class="modal-backdrop"></div>
+    <div id="quick-add-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/2 shadow-lg">
+        <h3 class="text-xl font-bold mb-6">Adicionar Sessão de Estudo</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4">
+                <div><label for="quick-add-materia" class="block mb-2 text-sm font-medium text-gray-300">Matéria</label><select id="quick-add-materia" class="w-full bg-gray-700 p-2 rounded border border-gray-600 focus:ring-blue-500 focus:border-blue-500"></select></div>
+                <div>
+                    <label for="quick-add-assunto" class="block mb-2 text-sm font-medium text-gray-300">Assunto/Tópico</label>
+                    <input type="text" id="quick-add-assunto" list="assuntos-datalist" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Ex: Art. 5º da CF">
+                    <datalist id="assuntos-datalist"></datalist>
+                    <p class="text-xs text-gray-500 mt-1">Deixe em branco se for apenas para registrar tempo.</p>
+                </div>
+                <div><label for="quick-add-data" class="block mb-2 text-sm font-medium text-gray-300">Data da Sessão</label><input type="date" id="quick-add-data" class="w-full bg-gray-700 p-2 rounded border border-gray-600"></div>
+            </div>
+            <div class="space-y-4">
+                <div><label class="block mb-2 text-sm font-medium text-gray-300">Tempo Estudado</label><div class="flex gap-4"><input type="number" id="quick-add-horas" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Horas"><input type="number" id="quick-add-minutos" min="0" max="59" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Minutos"></div></div>
+                <div><label class="block mb-2 text-sm font-medium text-gray-300">Questões</label><div class="flex gap-4"><input type="number" id="quick-add-resolvidas" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Resolvidas"><input type="number" id="quick-add-acertadas" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Acertadas"></div></div>
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="cancel-quick-add-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-quick-add-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salvar Sessão</button>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- ELEMENTOS DO DOM ---
+    const mainContainer = document.getElementById('main-container');
+    const mainNavList = document.getElementById('main-nav-list');
+    const materiasList = document.getElementById('materias-list');
+    
+    // Painéis
+    const menuPrincipalPanel = document.getElementById('menu-principal-panel');
+    const desempenhoPanel = document.getElementById('desempenho-panel');
+    const metasPanel = document.getElementById('metas-panel');
+    const materiaPanel = document.getElementById('materia-panel');
+    
+    const materiaTitle = document.getElementById('materia-title');
+    const newAssuntoInput = document.getElementById('new-assunto-input');
+    const addAssuntoBtn = document.getElementById('add-assunto-btn');
+    const assuntosList = document.getElementById('assuntos-list');
+    const gerarAssuntosBtn = document.getElementById('gerar-assuntos-sugeridos-btn');
+
+    // Abas
+    const tabQuestoes = document.getElementById('tab-questoes');
+    const tabHoras = document.getElementById('tab-horas');
+    const contentQuestoes = document.getElementById('tab-content-questoes');
+    const contentHoras = document.getElementById('tab-content-horas');
+
+    // Horas de Estudo
+    const openAddTempoModalBtn = document.getElementById('open-add-tempo-modal-btn');
+    const addTempoModalBackdrop = document.getElementById('add-tempo-modal-backdrop');
+    const addTempoModal = document.getElementById('add-tempo-modal');
+    const cancelAddTempoBtn = document.getElementById('cancel-add-tempo-btn');
+    const confirmAddTempoBtn = document.getElementById('confirm-add-tempo-btn');
+    const tempoDataInput = document.getElementById('tempo-data');
+    const tempoHorasInput = document.getElementById('tempo-horas');
+    const tempoMinutosInput = document.getElementById('tempo-minutos');
+    const tempoTableBody = document.getElementById('tempo-table-body');
+    
+    // Totalizadores de tempo
+    const tempoHojeEl = document.getElementById('tempo-hoje');
+    const tempoSemanaEl = document.getElementById('tempo-semana');
+    const tempoMesEl = document.getElementById('tempo-mes');
+    const tempoTotalEl = document.getElementById('tempo-total');
+
+    // Modal de Edição
+    const editMateriaModalBackdrop = document.getElementById('edit-materia-modal-backdrop');
+    const editMateriaModal = document.getElementById('edit-materia-modal');
+    const editMateriaInput = document.getElementById('edit-materia-input');
+    const cancelEditMateriaBtn = document.getElementById('cancel-edit-materia-btn');
+    const confirmEditMateriaBtn = document.getElementById('confirm-edit-materia-btn');
+    
+    // Modal Adicionar Matéria
+    const openAddMateriaModalBtn = document.getElementById('open-add-materia-modal-btn');
+    const addMateriaModalBackdrop = document.getElementById('add-materia-modal-backdrop');
+    const addMateriaModal = document.getElementById('add-materia-modal');
+    const addMateriaInput = document.getElementById('add-materia-input');
+    const cancelAddMateriaBtn = document.getElementById('cancel-add-materia-btn');
+    const confirmAddMateriaBtn = document.getElementById('confirm-add-materia-btn');
+
+    // Modal Gemini
+    const geminiModalBackdrop = document.getElementById('gemini-modal-backdrop');
+    const geminiModal = document.getElementById('gemini-modal');
+    const geminiModalTitle = document.getElementById('gemini-modal-title');
+    const geminiModalContent = document.getElementById('gemini-modal-content');
+    const geminiLoading = document.getElementById('gemini-loading');
+    const geminiResponse = document.getElementById('gemini-response');
+    const closeGeminiModalBtn = document.getElementById('close-gemini-modal-btn');
+
+    // Quick Add Modal
+    const openQuickAddBtn = document.getElementById('open-quick-add-btn');
+    const quickAddModalBackdrop = document.getElementById('quick-add-modal-backdrop');
+    const quickAddModal = document.getElementById('quick-add-modal');
+    const quickAddMateriaSelect = document.getElementById('quick-add-materia');
+    const quickAddAssuntoInput = document.getElementById('quick-add-assunto');
+    const quickAddDataInput = document.getElementById('quick-add-data');
+    const quickAddHorasInput = document.getElementById('quick-add-horas');
+    const quickAddMinutosInput = document.getElementById('quick-add-minutos');
+    const quickAddResolvidasInput = document.getElementById('quick-add-resolvidas');
+    const quickAddAcertadasInput = document.getElementById('quick-add-acertadas');
+    const cancelQuickAddBtn = document.getElementById('cancel-quick-add-btn');
+    const confirmQuickAddBtn = document.getElementById('confirm-quick-add-btn');
+    
+    // Concurso / Date Modal
+    const openAddConcursoModalBtn = document.getElementById('open-add-concurso-modal-btn');
+    const addConcursoModalBackdrop = document.getElementById('add-concurso-modal-backdrop');
+    const addConcursoModal = document.getElementById('add-concurso-modal');
+    const concursoNameInput = document.getElementById('concurso-name-input');
+    const cancelAddConcursoBtn = document.getElementById('cancel-add-concurso-btn');
+    const confirmAddConcursoBtn = document.getElementById('confirm-add-concurso-btn');
+    const dateModalBackdrop = document.getElementById('date-modal-backdrop');
+    const dateModal = document.getElementById('date-modal');
+    const dateModalTitle = document.getElementById('date-modal-title');
+    const provaDateInput = document.getElementById('prova-date-input');
+    const cancelDateBtn = document.getElementById('cancel-date-btn');
+    const confirmDateBtn = document.getElementById('confirm-date-btn');
+
+    // Settings Modal
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const settingsModalBackdrop = document.getElementById('settings-modal-backdrop');
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsMetaDiariaInput = document.getElementById('settings-meta-diaria');
+    const settingsMetaSemanalInput = document.getElementById('settings-meta-semanal');
+    const settingsMetaMensalInput = document.getElementById('settings-meta-mensal');
+    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    const confirmSettingsBtn = document.getElementById('confirm-settings-btn');
+    
+    // Timer
+    const openTimerSetupBtn = document.getElementById('open-timer-setup-btn');
+    const timerSetupModalBackdrop = document.getElementById('timer-setup-modal-backdrop');
+    const timerSetupModal = document.getElementById('timer-setup-modal');
+    const timerSetupMateriaSelect = document.getElementById('timer-setup-materia');
+    const timerSetupAssuntoInput = document.getElementById('timer-setup-assunto');
+    const cancelTimerSetupBtn = document.getElementById('cancel-timer-setup-btn');
+    const confirmTimerSetupBtn = document.getElementById('confirm-timer-setup-btn');
+    const timerScreen = document.getElementById('timer-screen');
+    const timerInfoMateria = document.getElementById('timer-info-materia');
+    const timerInfoAssunto = document.getElementById('timer-info-assunto');
+    const timerDisplay = document.getElementById('timer-display');
+    const timerPauseResumeBtn = document.getElementById('timer-pause-resume-btn');
+    const timerFinishBtn = document.getElementById('timer-finish-btn');
+    const timerBarDisplay = document.getElementById('timer-bar-display');
+    const timerHeader = document.getElementById('timer-header');
+    const timerControls = document.getElementById('timer-controls');
+
+    // Finish Session Modal
+    const finishSessionModalBackdrop = document.getElementById('finish-session-modal-backdrop');
+    const finishSessionModal = document.getElementById('finish-session-modal');
+    const learningRating = document.getElementById('learning-rating');
+    const finishSessionResolvidasInput = document.getElementById('finish-session-resolvidas');
+    const finishSessionAcertadasInput = document.getElementById('finish-session-acertadas');
+    const confirmFinishSessionBtn = document.getElementById('confirm-finish-session-btn');
+
+
+    // --- DADOS E ESTADO DA APLICAÇÃO ---
+    const frasesMotivacionais = [
+        { texto: "O sucesso é a soma de pequenos esforços repetidos dia após dia.", autor: "Robert Collier" },
+        { texto: "Acredite que você pode, assim você já está no meio do caminho.", autor: "Theodore Roosevelt" },
+        { texto: "A persistência é o caminho do êxito.", autor: "Charles Chaplin" },
+        { texto: "Não espere por uma crise para descobrir o que é importante em sua vida.", autor: "Platão" },
+        { texto: "Sua única limitação é você mesmo.", autor: "Desconhecido" },
+        { texto: "O segredo para progredir é começar.", autor: "Mark Twain" },
+        { texto: "A disciplina é a ponte entre metas e realizações.", autor: "Jim Rohn" },
+        { texto: "Não tenha medo de desistir do bom para perseguir o ótimo.", autor: "John D. Rockefeller" },
+        { texto: "A jornada de mil milhas começa com um único passo.", autor: "Lao Tsé" },
+        { texto: "Você nunca sabe que resultados virão da sua ação. Mas se você não fizer nada, não existirão resultados.", autor: "Mahatma Gandhi" },
+        { texto: "Estude com a dedicação de quem sabe que o futuro depende disso.", autor: "Desconhecido" },
+        { texto: "A dor que você sente hoje é a força que você sentirá amanhã.", autor: "Desconhecido" },
+        { texto: "O sacrifício é o intervalo entre o seu objetivo e a sua glória.", autor: "Desconhecido" },
+        { texto: "Para passar em um concurso, você só precisa de uma vaga: a sua.", autor: "Desconhecido" },
+        { texto: "Enquanto eles dormem, você estuda. A recompensa virá.", autor: "Desconhecido" },
+        { texto: "A aprovação é consequência da sua dedicação.", autor: "Desconhecido" },
+        { texto: "Não conte os dias, faça os dias contarem.", autor: "Muhammad Ali" },
+        { texto: "O conhecimento é a única coisa que ninguém pode tirar de você.", autor: "B.B. King" },
+        { texto: "A diferença entre o ordinário e o extraordinário é aquele pequeno extra.", autor: "Jimmy Johnson" },
+        { texto: "Seu futuro é criado pelo que você faz hoje, não amanhã.", autor: "Robert Kiyosaki" },
+        { texto: "Acredite em si próprio e chegará um dia em que os outros não terão outra escolha senão acreditar com você.", autor: "Cynthia Kersey" },
+        { texto: "O cansaço passa, a aprovação fica.", autor: "Desconhecido" },
+        { texto: "Foco, força e fé: o lema de todo aprovado.", autor: "Desconhecido" },
+        { texto: "A cada página virada, um passo a mais rumo à posse.", autor: "Desconhecido" },
+        { texto: "A constância no estudo é mais importante que a velocidade.", autor: "Desconhecido" },
+        { texto: "Lute. Sua conquista vai inspirar outros.", autor: "Desconhecido" },
+        { texto: "A aprovação está na ponta da caneta de quem não desiste.", autor: "Desconhecido" },
+        { texto: "Não estude para passar, estude até passar.", autor: "Desconhecido" },
+        { texto: "O edital é o seu mapa; a disciplina, o seu combustível.", autor: "Desconhecido" },
+        { texto: "Hoje um leitor, amanhã um líder.", autor: "Margaret Fuller" }
+    ];
+
+    let state = {
+        materias: [],
+        concursos: [],
+        activeConcursoId: null,
+        activeMateriaId: null,
+        activeView: 'menuPrincipal', 
+        metas: { diaria: 2, semanal: 10, mensal: 40 },
+        fraseDoDia: { texto: "", autor: "", data: "" },
+    };
+    let editingMateriaId = null;
+    let editingConcursoId = null;
+    let geralChartInstance = null;
+    let weeklyChartInstance = null;
+    let countdownInterval = null;
+    let timer = {
+        interval: null,
+        startTime: 0,
+        elapsedTime: 0,
+        isRunning: false,
+        isPaused: false,
+        materiaId: null,
+        assuntoNome: ''
+    };
+    let inactivityTimeout;
+
+    // --- FUNÇÕES DE LÓGICA DE DADOS (localStorage) ---
+    const saveData = () => {
+        localStorage.setItem('qapConcurseirosState', JSON.stringify(state));
+    };
+
+    const loadData = () => {
+        const savedState = localStorage.getItem('qapConcurseirosState');
+        if (savedState) {
+            state = JSON.parse(savedState);
+            if (!state.concursos) state.concursos = []; // Compatibilidade com versões antigas
+            if (!state.activeConcursoId) state.activeConcursoId = null;
+        }
+    };
+
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
+    const atualizarFraseDoDia = () => {
+        const hoje = new Date().toISOString().split('T')[0];
+        if (!state.fraseDoDia || state.fraseDoDia.data !== hoje) {
+            const start = new Date(new Date().getFullYear(), 0, 0);
+            const diff = (new Date() - start) + ((start.getTimezoneOffset() - new Date().getTimezoneOffset()) * 60 * 1000);
+            const oneDay = 1000 * 60 * 60 * 24;
+            const diaDoAno = Math.floor(diff / oneDay);
+
+            const indice = diaDoAno % frasesMotivacionais.length;
+            state.fraseDoDia = {
+                texto: frasesMotivacionais[indice].texto,
+                autor: frasesMotivacionais[indice].autor,
+                data: hoje
+            };
+            saveData();
+        }
+    };
+    
+    const renderMainNav = () => {
+        mainNavList.innerHTML = '';
+        const navItems = [
+            { id: 'menuPrincipal', icon: 'fa-home', label: 'Menu Principal' },
+            { id: 'desempenho', icon: 'fa-chart-pie', label: 'Desempenho' },
+            { id: 'metas', icon: 'fa-bullseye', label: 'Metas' }
+        ];
+
+        navItems.forEach(item => {
+            const li = document.createElement('li');
+            li.className = `sidebar-btn flex items-center p-3 rounded-lg cursor-pointer mb-2 transition-colors ${state.activeView === item.id ? 'active' : 'hover:bg-gray-700'}`;
+            li.innerHTML = `<i class="fas ${item.icon} fa-fw mr-3"></i><span>${item.label}</span>`;
+            li.onclick = () => {
+                state.activeView = item.id;
+                state.activeMateriaId = null;
+                render();
+            };
+            mainNavList.appendChild(li);
+        });
+    };
+
+    const renderMaterias = () => {
+        materiasList.innerHTML = '';
+        state.materias.forEach(materia => {
+            const li = document.createElement('li');
+            const isActive = state.activeView === 'materia' && state.activeMateriaId === materia.id;
+            li.className = `flex justify-between items-center p-3 rounded-lg cursor-pointer mb-2 transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600'}`;
+            li.dataset.id = materia.id;
+
+            const span = document.createElement('span');
+            span.textContent = materia.nome;
+            span.className = 'flex-grow';
+            li.appendChild(span);
+            
+            li.addEventListener('click', () => {
+                state.activeView = 'materia';
+                state.activeMateriaId = materia.id;
+                render();
+            });
+
+            const buttonsDiv = document.createElement('div');
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+            editBtn.className = 'text-gray-400 hover:text-white mr-3';
+            editBtn.onclick = (e) => { e.stopPropagation(); openEditMateriaModal(materia.id); };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.className = 'text-gray-400 hover:text-red-500';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm(`Tem certeza que deseja excluir a matéria "${materia.nome}" e todos os seus dados?`)) {
+                    state.materias = state.materias.filter(m => m.id !== materia.id);
+                    if (state.activeMateriaId === materia.id) {
+                        state.activeView = 'menuPrincipal';
+                        state.activeMateriaId = null;
+                    }
+                    render();
+                }
+            };
+
+            buttonsDiv.appendChild(editBtn);
+            buttonsDiv.appendChild(deleteBtn);
+            li.appendChild(buttonsDiv);
+            materiasList.appendChild(li);
+        });
+    };
+    
+    const renderAssuntos = () => {
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (!materia) return;
+        assuntosList.innerHTML = '';
+        materia.assuntos.forEach(assunto => {
+            const erradas = assunto.resolvidas - assunto.acertadas;
+            const desempenho = assunto.resolvidas > 0 ? ((assunto.acertadas / assunto.resolvidas) * 100).toFixed(1) : 0;
+            const div = document.createElement('div');
+            div.className = 'bg-gray-700 p-4 rounded-lg';
+            div.innerHTML = `<div class="flex justify-between items-center mb-3"><h4 class="text-lg font-semibold">${assunto.nome}</h4><button data-assunto-id="${assunto.id}" class="delete-assunto-btn text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center"><div><label class="block text-sm text-gray-400">Resolvidas</label><input type="number" min="0" value="${assunto.resolvidas}" data-assunto-id="${assunto.id}" data-field="resolvidas" class="questoes-input w-full bg-gray-800 rounded p-1 text-center"></div><div><label class="block text-sm text-gray-400">Acertadas</label><input type="number" min="0" value="${assunto.acertadas}" data-assunto-id="${assunto.id}" data-field="acertadas" class="questoes-input w-full bg-gray-800 rounded p-1 text-center"></div><div class="bg-gray-800 p-2 rounded"><p class="text-sm text-gray-400">Erradas</p><p class="font-bold text-red-400">${erradas}</p></div><div class="bg-gray-800 p-2 rounded"><p class="text-sm text-gray-400">Desempenho</p><p class="font-bold text-green-400">${desempenho}%</p></div></div>`;
+            assuntosList.appendChild(div);
+        });
+        document.querySelectorAll('.questoes-input').forEach(input => input.addEventListener('change', handleQuestoesChange));
+        document.querySelectorAll('.delete-assunto-btn').forEach(btn => btn.addEventListener('click', handleDeleteAssunto));
+    };
+
+    const renderHorasEstudo = () => {
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (!materia) return;
+        tempoTableBody.innerHTML = '';
+        materia.horasEstudo.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(reg => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-700';
+            tr.innerHTML = `<td class="p-2">${new Date(reg.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td><td class="p-2">${Math.floor(reg.minutos / 60)}h ${reg.minutos % 60}m</td><td class="p-2"><button data-registro-id="${reg.id}" class="delete-tempo-btn text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button></td>`;
+            tempoTableBody.appendChild(tr);
+        });
+        document.querySelectorAll('.delete-tempo-btn').forEach(btn => btn.addEventListener('click', handleDeleteTempo));
+        updateTempoTotais();
+    };
+
+    const updateTempoTotais = () => {
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (!materia) return;
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        let tempoHoje = 0, tempoSemana = 0, tempoMes = 0, tempoTotal = 0;
+        materia.horasEstudo.forEach(reg => {
+            const regDate = new Date(reg.data + 'T00:00:00');
+            tempoTotal += reg.minutos;
+            if (reg.data === todayStr) tempoHoje += reg.minutos;
+            if (regDate >= startOfWeek) tempoSemana += reg.minutos;
+            if (regDate >= startOfMonth) tempoMes += reg.minutos;
+        });
+        const formatMinutes = (min) => `${Math.floor(min / 60)}h ${min % 60}m`;
+        tempoHojeEl.textContent = formatMinutes(tempoHoje);
+        tempoSemanaEl.textContent = formatMinutes(tempoSemana);
+        tempoMesEl.textContent = formatMinutes(tempoMes);
+        tempoTotalEl.textContent = formatMinutes(tempoTotal);
+    };
+    
+    const renderGeralPerformanceChart = () => {
+        let totalAcertos = 0, totalResolvidas = 0;
+        state.materias.forEach(m => m.assuntos.forEach(a => { totalAcertos += a.acertadas; totalResolvidas += a.resolvidas; }));
+        const totalErros = totalResolvidas - totalAcertos;
+        const percentualAcertos = totalResolvidas > 0 ? (totalAcertos / totalResolvidas) * 100 : 0;
+        const percentualErros = totalResolvidas > 0 ? (totalErros / totalResolvidas) * 100 : 0;
+        const ctx = document.getElementById('geral-performance-chart').getContext('2d');
+        const data = { labels: ['Acertos', 'Erros'], datasets: [{ data: [totalAcertos, totalErros], backgroundColor: ['#22c55e', '#ef4444'], borderColor: '#1f2937', borderWidth: 4, hoverOffset: 4 }] };
+        if (geralChartInstance) {
+            geralChartInstance.destroy();
+        }
+        geralChartInstance = new Chart(ctx, { type: 'doughnut', data: data, options: { responsive: true, cutout: '70%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}` } } } } });
+        const performanceText = document.getElementById('geral-performance-text');
+        if (totalResolvidas > 0) { performanceText.textContent = `${percentualAcertos.toFixed(1)}%`; performanceText.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-green-400'; } 
+        else { performanceText.textContent = 'N/A'; performanceText.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-500'; }
+        const legendEl = document.getElementById('chart-legend');
+        if (totalResolvidas > 0) { legendEl.innerHTML = `<div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>Acertos: ${percentualAcertos.toFixed(1)}%</div><div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Erros: ${percentualErros.toFixed(1)}%</div>`; } 
+        else { legendEl.innerHTML = `<div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>Acertos</div><div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Erros</div>`; }
+    };
+
+    const renderDesempenho = () => {
+        const desempenhoMateriasEl = document.getElementById('dashboard-desempenho-materias');
+        const materiasPerformance = [];
+        state.materias.forEach(materia => {
+            let resolvidas = 0, acertos = 0;
+            materia.assuntos.forEach(a => { resolvidas += a.resolvidas; acertos += a.acertadas; });
+            const erros = resolvidas - acertos;
+            const percAcertos = resolvidas > 0 ? (acertos / resolvidas) * 100 : 0;
+            const percErros = resolvidas > 0 ? (erros / resolvidas) * 100 : 0;
+            materiasPerformance.push({ nome: materia.nome, resolvidas, acertos, erros, percAcertos, percErros });
+        });
+        desempenhoMateriasEl.innerHTML = '';
+        if (state.materias.length === 0) { desempenhoMateriasEl.innerHTML = '<p class="text-gray-500 p-4 text-center">Adicione matérias e resolva questões para ver sua performance.</p>'; } 
+        else {
+            materiasPerformance.sort((a,b) => b.resolvidas - a.resolvidas).forEach(perf => {
+                const div = document.createElement('div');
+                div.className = 'grid grid-cols-12 gap-4 items-center bg-gray-700/50 hover:bg-gray-700 p-4 rounded-lg';
+                div.innerHTML = `<div class="col-span-12 md:col-span-5 font-medium">${perf.nome}</div><div class="col-span-12 md:col-span-2 text-center"><span class="font-bold">${perf.resolvidas}</span><span class="text-xs text-gray-400 md:hidden">(Total)</span></div><div class="col-span-12 md:col-span-5"><div class="flex items-center justify-center text-sm mb-1"><span class="font-bold text-green-400 mr-1">${perf.acertos}</span><span class="text-xs text-gray-400 mr-2">(${perf.percAcertos.toFixed(1)}%)</span><span class="font-bold text-red-400 mr-1">${perf.erros}</span><span class="text-xs text-gray-400">(${perf.percErros.toFixed(1)}%)</span></div><div class="flex w-full h-2 bg-red-500 rounded-full overflow-hidden"><div class="bg-green-500 h-2" style="width: ${perf.percAcertos}%"></div></div></div>`;
+                desempenhoMateriasEl.appendChild(div);
+            });
+        }
+        renderGeralPerformanceChart();
+    };
+    
+    const renderMenuPrincipal = () => {
+        const aproveitamentoBar = document.getElementById('geral-aproveitamento-bar');
+        const aproveitamentoText = document.getElementById('geral-aproveitamento-text');
+        const melhorMateriaNota = document.getElementById('melhor-materia-nota');
+        const piorMateriaNota = document.getElementById('pior-materia-nota');
+        const fraseEl = document.getElementById('frase-do-dia');
+        const autorEl = document.getElementById('autor-da-frase');
+
+        fraseEl.textContent = `"${state.fraseDoDia.texto}"`;
+        autorEl.textContent = `- ${state.fraseDoDia.autor}`;
+        
+        let totalAcertos = 0, totalResolvidas = 0;
+        const materiasPerformance = [];
+        state.materias.forEach(materia => {
+            let materiaResolvidas = 0, materiaAcertos = 0;
+            materia.assuntos.forEach(a => { materiaResolvidas += a.resolvidas; materiaAcertos += a.acertadas; });
+            totalResolvidas += materiaResolvidas;
+            totalAcertos += materiaAcertos;
+            if (materiaResolvidas > 0) {
+                materiasPerformance.push({ nome: materia.nome, perf: (materiaAcertos / materiaResolvidas) * 100 });
+            }
+        });
+        const percGeral = totalResolvidas > 0 ? (totalAcertos / totalResolvidas) * 100 : 0;
+        aproveitamentoBar.style.width = `${percGeral}%`;
+        aproveitamentoText.textContent = `${percGeral.toFixed(1)}%`;
+        if (materiasPerformance.length > 0) {
+            materiasPerformance.sort((a, b) => b.perf - a.perf);
+            melhorMateriaNota.textContent = `${materiasPerformance[0].perf.toFixed(1)}%`;
+            piorMateriaNota.textContent = `${materiasPerformance[materiasPerformance.length - 1].perf.toFixed(1)}%`;
+        } else {
+            melhorMateriaNota.textContent = 'N/A';
+            piorMateriaNota.textContent = 'N/A';
+        }
+        renderConcursos();
+        renderLastSessions();
+        renderWeeklyChart();
+    };
+
+    const renderMetasPanel = () => {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        
+        const dayOfWeek = now.getDay();
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        let minutosHoje = 0, minutosSemana = 0, minutosMes = 0;
+
+        state.materias.forEach(materia => {
+            materia.horasEstudo.forEach(reg => {
+                const regDate = new Date(reg.data + 'T00:00:00');
+                if (regDate >= startOfMonth) {
+                    minutosMes += reg.minutos;
+                }
+                if (regDate >= startOfWeek) {
+                    minutosSemana += reg.minutos;
+                }
+                if (reg.data === todayStr) {
+                    minutosHoje += reg.minutos;
+                }
+            });
+        });
+
+        const formatHours = (minutes) => (minutes / 60).toFixed(1);
+
+        // Atualiza meta diária
+        const metaDiariaMin = state.metas.diaria * 60;
+        const percDiaria = metaDiariaMin > 0 ? Math.min((minutosHoje / metaDiariaMin) * 100, 100) : 0;
+        document.getElementById('progresso-diario-barra').style.width = `${percDiaria}%`;
+        document.getElementById('progresso-diario-texto').textContent = `${formatHours(minutosHoje)}h / ${state.metas.diaria}h`;
+
+        // Atualiza meta semanal
+        const metaSemanalMin = state.metas.semanal * 60;
+        const percSemanal = metaSemanalMin > 0 ? Math.min((minutosSemana / metaSemanalMin) * 100, 100) : 0;
+        document.getElementById('progresso-semanal-barra').style.width = `${percSemanal}%`;
+        document.getElementById('progresso-semanal-texto').textContent = `${formatHours(minutosSemana)}h / ${state.metas.semanal}h`;
+
+        // Atualiza meta mensal
+        const metaMensalMin = state.metas.mensal * 60;
+        const percMensal = metaMensalMin > 0 ? Math.min((minutosMes / metaMensalMin) * 100, 100) : 0;
+        document.getElementById('progresso-mensal-barra').style.width = `${percMensal}%`;
+        document.getElementById('progresso-mensal-texto').textContent = `${formatHours(minutosMes)}h / ${state.metas.mensal}h`;
+    };
+
+    const renderConcursos = () => {
+        const concursosList = document.getElementById('concursos-list');
+        concursosList.innerHTML = '';
+        if (state.concursos.length === 0) {
+            concursosList.innerHTML = '<p class="text-sm text-gray-500">Nenhum concurso cadastrado.</p>';
+        } else {
+            state.concursos.forEach(concurso => {
+                const isActive = concurso.id === state.activeConcursoId;
+                const item = document.createElement('div');
+                item.className = `concurso-item flex justify-between items-center p-2 rounded-lg cursor-pointer ${isActive ? 'active' : 'hover:bg-gray-700'}`;
+                item.innerHTML = `
+                    <span class="font-bold">${concurso.nome}</span>
+                    <div class="space-x-3">
+                        <button data-id="${concurso.id}" class="set-date-btn text-gray-400 hover:text-white"><i class="fas fa-calendar-alt"></i></button>
+                        <button data-id="${concurso.id}" class="delete-concurso-btn text-gray-400 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                item.addEventListener('click', () => {
+                    state.activeConcursoId = concurso.id;
+                    render();
+                });
+                concursosList.appendChild(item);
+            });
+        }
+        renderCountdown();
+    };
+
+    const renderCountdown = () => {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const container = document.getElementById('countdown-container');
+        const activeConcurso = state.concursos.find(c => c.id === state.activeConcursoId);
+
+        if (!activeConcurso || !activeConcurso.data) {
+            container.innerHTML = '<p class="text-gray-500">Selecione um concurso e defina a data da prova.</p>';
+            return;
+        }
+
+        const update = () => {
+            const agora = new Date().getTime();
+            const dataProva = new Date(activeConcurso.data + 'T23:59:59').getTime();
+            const diferenca = dataProva - agora;
+
+            if (diferenca < 0) {
+                container.innerHTML = '<p class="text-green-400 font-bold">Prova realizada! Boa sorte!</p>';
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+
+            container.innerHTML = `
+                <div><span class="text-3xl font-bold">${dias}</span><p class="text-xs text-gray-400">Dias</p></div>
+                <div><span class="text-3xl font-bold">${horas.toString().padStart(2, '0')}</span><p class="text-xs text-gray-400">Horas</p></div>
+                <div><span class="text-3xl font-bold">${minutos.toString().padStart(2, '0')}</span><p class="text-xs text-gray-400">Minutos</p></div>
+                <div><span class="text-3xl font-bold">${segundos.toString().padStart(2, '0')}</span><p class="text-xs text-gray-400">Segundos</p></div>
+            `;
+        };
+        update();
+        countdownInterval = setInterval(update, 1000);
+    };
+
+    const renderLastSessions = () => {
+        const listEl = document.getElementById('last-sessions-list');
+        const allSessions = [];
+        state.materias.forEach(materia => {
+            materia.horasEstudo.forEach(reg => {
+                allSessions.push({ ...reg, materiaNome: materia.nome });
+            });
+        });
+        
+        allSessions.sort((a, b) => b.id - a.id);
+        const lastFour = allSessions.slice(0, 4);
+
+        listEl.innerHTML = '';
+        if (lastFour.length === 0) {
+            listEl.innerHTML = '<p class="text-gray-500">Nenhuma sessão registrada ainda.</p>';
+            return;
+        }
+
+        lastFour.forEach(session => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center bg-gray-700/50 p-2 rounded';
+            let description = '';
+            if (session.minutos > 0) {
+                description += `<i class="fas fa-clock text-blue-400 mr-2"></i> ${Math.floor(session.minutos / 60)}h ${session.minutos % 60}m`;
+            }
+            if (session.resolvidas > 0) {
+                description += `<span class="mx-2">|</span> <i class="fas fa-check-double text-green-400 mr-2"></i> ${session.acertadas}/${session.resolvidas}`;
+            }
+            li.innerHTML = `
+                <div>
+                    <p class="font-bold">${session.materiaNome}</p>
+                    <p class="text-xs text-gray-400">${session.assuntoNome || 'Estudo geral'}</p>
+                </div>
+                <div class="text-right">${description}</div>
+            `;
+            listEl.appendChild(li);
+        });
+    };
+
+    const renderWeeklyChart = () => {
+        const ctx = document.getElementById('weekly-study-chart').getContext('2d');
+        const labels = [];
+        const data = [];
+        const today = new Date();
+
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            labels.push(d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3));
+            
+            const dateStr = d.toISOString().split('T')[0];
+            let totalMinutes = 0;
+            state.materias.forEach(materia => {
+                materia.horasEstudo.forEach(reg => {
+                    if (reg.data === dateStr) {
+                        totalMinutes += reg.minutos;
+                    }
+                });
+            });
+            data.push(totalMinutes / 60); // Convert to hours
+        }
+
+        if (weeklyChartInstance) {
+            weeklyChartInstance.destroy();
+        }
+        
+        weeklyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Horas Estudadas',
+                    data: data,
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                    x: { grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    };
+
+    const render = () => {
+        saveData();
+        renderMainNav();
+        renderMaterias();
+
+        menuPrincipalPanel.classList.toggle('hidden', state.activeView !== 'menuPrincipal');
+        desempenhoPanel.classList.toggle('hidden', state.activeView !== 'desempenho');
+        metasPanel.classList.toggle('hidden', state.activeView !== 'metas');
+        materiaPanel.classList.toggle('hidden', state.activeView !== 'materia');
+
+        switch(state.activeView) {
+            case 'menuPrincipal':
+                renderMenuPrincipal();
+                break;
+            case 'desempenho':
+                renderDesempenho();
+                break;
+            case 'metas':
+                renderMetasPanel();
+                break;
+            case 'materia':
+                const activeMateria = state.materias.find(m => m.id === state.activeMateriaId);
+                if (activeMateria) {
+                    materiaTitle.textContent = activeMateria.nome;
+                    switchTab('questoes');
+                    renderAssuntos();
+                    renderHorasEstudo();
+                }
+                break;
+        }
+    };
+
+    // --- MANIPULADORES DE EVENTOS ---
+    
+    addAssuntoBtn.addEventListener('click', () => {
+        const nome = newAssuntoInput.value.trim();
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (nome && materia) {
+            materia.assuntos.push({ id: Date.now().toString(), nome: nome, resolvidas: 0, acertadas: 0 });
+            newAssuntoInput.value = '';
+            render();
+        }
+    });
+    newAssuntoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addAssuntoBtn.click(); });
+
+    function handleQuestoesChange(e) {
+        const { assuntoId, field } = e.target.dataset;
+        let value = parseInt(e.target.value, 10);
+        if (isNaN(value) || value < 0) value = 0;
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        const assunto = materia.assuntos.find(a => a.id === assuntoId);
+        assunto[field] = value;
+        if (assunto.acertadas > assunto.resolvidas) assunto.acertadas = assunto.resolvidas;
+        render();
+    }
+
+    function handleDeleteAssunto(e) {
+        const assuntoId = e.currentTarget.dataset.assuntoId;
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (confirm(`Tem certeza que deseja excluir este assunto?`)) {
+            materia.assuntos = materia.assuntos.filter(a => a.id !== assuntoId);
+            render();
+        }
+    }
+    
+    const switchTab = (activeTab) => {
+        const isQuestoes = activeTab === 'questoes';
+        tabQuestoes.classList.toggle('active-tab', isQuestoes);
+        tabQuestoes.classList.toggle('text-white', isQuestoes);
+        tabQuestoes.classList.toggle('text-gray-400', !isQuestoes);
+        contentQuestoes.classList.toggle('hidden', !isQuestoes);
+        tabHoras.classList.toggle('active-tab', !isQuestoes);
+        tabHoras.classList.toggle('text-white', !isQuestoes);
+        tabHoras.classList.toggle('text-gray-400', isQuestoes);
+        contentHoras.classList.toggle('hidden', isQuestoes);
+    };
+    tabQuestoes.addEventListener('click', (e) => { e.preventDefault(); switchTab('questoes'); });
+    tabHoras.addEventListener('click', (e) => { e.preventDefault(); switchTab('horas'); });
+
+    // Modais
+    const openTempoModal = () => { tempoDataInput.valueAsDate = new Date(); tempoHorasInput.value = ''; tempoMinutosInput.value = ''; addTempoModal.style.display = 'block'; addTempoModalBackdrop.style.display = 'block'; };
+    const closeTempoModal = () => { addTempoModal.style.display = 'none'; addTempoModalBackdrop.style.display = 'none'; };
+    openAddTempoModalBtn.addEventListener('click', openTempoModal);
+    cancelAddTempoBtn.addEventListener('click', closeTempoModal);
+    addTempoModalBackdrop.addEventListener('click', closeTempoModal);
+    confirmAddTempoBtn.addEventListener('click', () => {
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        const data = tempoDataInput.value;
+        const horas = parseInt(tempoHorasInput.value) || 0;
+        const minutos = parseInt(tempoMinutosInput.value) || 0;
+        if (materia && data && (horas > 0 || minutos > 0)) {
+            materia.horasEstudo.push({ id: Date.now().toString(), data: data, minutos: (horas * 60) + minutos });
+            render();
+            closeTempoModal();
+        } else { alert('Por favor, preencha a data e um tempo válido.'); }
+    });
+    function handleDeleteTempo(e) {
+        const registroId = e.currentTarget.dataset.registroId;
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (confirm(`Tem certeza que deseja excluir este registro de tempo?`)) {
+            materia.horasEstudo = materia.horasEstudo.filter(reg => reg.id !== registroId);
+            render();
+        }
+    }
+    
+    const openEditMateriaModal = (materiaId) => { editingMateriaId = materiaId; const materia = state.materias.find(m => m.id === materiaId); editMateriaInput.value = materia.nome; editMateriaModal.style.display = 'block'; editMateriaModalBackdrop.style.display = 'block'; };
+    const closeEditMateriaModal = () => { editMateriaModal.style.display = 'none'; editMateriaModalBackdrop.style.display = 'none'; editingMateriaId = null; };
+    cancelEditMateriaBtn.addEventListener('click', closeEditMateriaModal);
+    editMateriaModalBackdrop.addEventListener('click', closeEditMateriaModal);
+    confirmEditMateriaBtn.addEventListener('click', () => {
+        const newName = editMateriaInput.value.trim();
+        if (newName && editingMateriaId) {
+            const materia = state.materias.find(m => m.id === editingMateriaId);
+            materia.nome = newName;
+            render();
+            closeEditMateriaModal();
+        }
+    });
+
+    // Modal Adicionar Matéria Logic
+    const openAddMateriaModal = () => {
+        addMateriaInput.value = '';
+        addMateriaModal.style.display = 'block';
+        addMateriaModalBackdrop.style.display = 'block';
+        addMateriaInput.focus();
+    };
+    const closeAddMateriaModal = () => {
+        addMateriaModal.style.display = 'none';
+        addMateriaModalBackdrop.style.display = 'none';
+    };
+    openAddMateriaModalBtn.addEventListener('click', openAddMateriaModal);
+    cancelAddMateriaBtn.addEventListener('click', closeAddMateriaModal);
+    addMateriaModalBackdrop.addEventListener('click', closeAddMateriaModal);
+    confirmAddMateriaBtn.addEventListener('click', () => {
+        const nome = addMateriaInput.value.trim();
+        if (nome) {
+            const newMateria = { id: Date.now().toString(), nome: nome, assuntos: [], horasEstudo: [] };
+            state.materias.push(newMateria);
+            state.activeView = 'materia';
+            state.activeMateriaId = newMateria.id;
+            closeAddMateriaModal();
+            render();
+        }
+    });
+    
+    // Quick Add Modal Logic
+    const openQuickAddModal = () => {
+        if (state.materias.length === 0) {
+            alert('Você precisa cadastrar pelo menos uma matéria antes de adicionar uma sessão.');
+            return;
+        }
+        quickAddMateriaSelect.innerHTML = '<option value="">Selecione uma matéria</option>';
+        state.materias.forEach(materia => {
+            const option = document.createElement('option');
+            option.value = materia.id;
+            option.textContent = materia.nome;
+            quickAddMateriaSelect.appendChild(option);
+        });
+        quickAddDataInput.valueAsDate = new Date();
+        quickAddAssuntoInput.value = '';
+        document.getElementById('assuntos-datalist').innerHTML = ''; // Limpa o datalist
+        quickAddHorasInput.value = '';
+        quickAddMinutosInput.value = '';
+        quickAddResolvidasInput.value = '';
+        quickAddAcertadasInput.value = '';
+        quickAddModal.style.display = 'block';
+        quickAddModalBackdrop.style.display = 'block';
+    };
+    const closeQuickAddModal = () => {
+        quickAddModal.style.display = 'none';
+        quickAddModalBackdrop.style.display = 'none';
+    };
+    const handleConfirmQuickAdd = () => {
+        const materiaId = quickAddMateriaSelect.value;
+        const assuntoNome = quickAddAssuntoInput.value.trim();
+        const data = quickAddDataInput.value;
+        const horas = parseInt(quickAddHorasInput.value) || 0;
+        const minutos = parseInt(quickAddMinutosInput.value) || 0;
+        const resolvidas = parseInt(quickAddResolvidasInput.value) || 0;
+        let acertadas = parseInt(quickAddAcertadasInput.value) || 0;
+
+        if (!materiaId) { alert('Por favor, selecione uma matéria.'); return; }
+        if (!data) { alert('Por favor, selecione uma data.'); return; }
+        if (horas === 0 && minutos === 0 && resolvidas === 0) { alert('Você precisa registrar tempo ou questões resolvidas.'); return; }
+        if (resolvidas > 0 && !assuntoNome) { alert('Por favor, informe o assunto/tópico para registrar as questões.'); return; }
+        if (acertadas > resolvidas) { alert('O número de acertos não pode ser maior que o de questões resolvidas.'); return; }
+
+        const materia = state.materias.find(m => m.id === materiaId);
+        if (!materia) return;
+
+        const totalMinutos = (horas * 60) + minutos;
+        
+        let newSession = {
+            id: Date.now().toString(),
+            data: data,
+            minutos: totalMinutos,
+            resolvidas: 0,
+            acertadas: 0,
+            assuntoNome: ''
+        };
+
+        if (totalMinutos > 0) {
+             materia.horasEstudo.push({ ...newSession });
+        }
+
+        if (resolvidas > 0 && assuntoNome) {
+            let assunto = materia.assuntos.find(a => a.nome.toLowerCase() === assuntoNome.toLowerCase());
+            if (assunto) {
+                assunto.resolvidas += resolvidas;
+                assunto.acertadas += acertadas;
+            } else {
+                materia.assuntos.push({ id: Date.now().toString(), nome: assuntoNome, resolvidas: resolvidas, acertadas: acertadas });
+            }
+            // Adiciona registro de questão para a lista de "últimas sessões"
+            if (totalMinutos === 0) {
+                 materia.horasEstudo.push({ ...newSession, resolvidas, acertadas, assuntoNome });
+            } else {
+                // Se já adicionou tempo, apenas atualiza a última entrada
+                const lastEntry = materia.horasEstudo[materia.horasEstudo.length - 1];
+                if (lastEntry.id === newSession.id) {
+                    lastEntry.resolvidas = resolvidas;
+                    lastEntry.acertadas = acertadas;
+                    lastEntry.assuntoNome = assuntoNome;
+                }
+            }
+        }
+        closeQuickAddModal();
+        render();
+    };
+    openQuickAddBtn.addEventListener('click', openQuickAddModal);
+    cancelQuickAddBtn.addEventListener('click', closeQuickAddModal);
+    quickAddModalBackdrop.addEventListener('click', closeQuickAddModal);
+    confirmQuickAddBtn.addEventListener('click', handleConfirmQuickAdd);
+    quickAddMateriaSelect.addEventListener('change', (e) => {
+        const materiaId = e.target.value;
+        const datalist = document.getElementById('assuntos-datalist');
+        datalist.innerHTML = '';
+        if (materiaId) {
+            const materia = state.materias.find(m => m.id === materiaId);
+            if (materia) {
+                materia.assuntos.forEach(assunto => {
+                    const option = document.createElement('option');
+                    option.value = assunto.nome;
+                    datalist.appendChild(option);
+                });
+            }
+        }
+    });
+
+    // Concurso / Date Modal Logic
+    const openAddConcursoModal = () => {
+        concursoNameInput.value = '';
+        addConcursoModal.style.display = 'block';
+        addConcursoModalBackdrop.style.display = 'block';
+    };
+    const closeAddConcursoModal = () => {
+        addConcursoModal.style.display = 'none';
+        addConcursoModalBackdrop.style.display = 'none';
+    };
+    openAddConcursoModalBtn.addEventListener('click', openAddConcursoModal);
+    cancelAddConcursoBtn.addEventListener('click', closeAddConcursoModal);
+    addConcursoModalBackdrop.addEventListener('click', closeAddConcursoModal);
+    confirmAddConcursoBtn.addEventListener('click', () => {
+        const nome = concursoNameInput.value.trim();
+        if (nome) {
+            const newConcurso = { id: Date.now().toString(), nome, data: null };
+            state.concursos.push(newConcurso);
+            if (state.concursos.length === 1) {
+                state.activeConcursoId = newConcurso.id;
+            }
+            render();
+            closeAddConcursoModal();
+        }
+    });
+
+    document.getElementById('concursos-list').addEventListener('click', (e) => {
+        const setDateBtn = e.target.closest('.set-date-btn');
+        const deleteBtn = e.target.closest('.delete-concurso-btn');
+        if (setDateBtn) {
+            e.stopPropagation();
+            editingConcursoId = setDateBtn.dataset.id;
+            openDateModal();
+        }
+        if (deleteBtn) {
+            e.stopPropagation();
+            const concursoId = deleteBtn.dataset.id;
+            if (confirm('Tem certeza que deseja remover este concurso?')) {
+                state.concursos = state.concursos.filter(c => c.id !== concursoId);
+                if (state.activeConcursoId === concursoId) {
+                    state.activeConcursoId = state.concursos.length > 0 ? state.concursos[0].id : null;
+                }
+                render();
+            }
+        }
+    });
+
+    const openDateModal = () => {
+        const concurso = state.concursos.find(c => c.id === editingConcursoId);
+        if (!concurso) return;
+        dateModalTitle.textContent = `Definir Data da Prova - ${concurso.nome}`;
+        provaDateInput.value = concurso.data || '';
+        dateModal.style.display = 'block';
+        dateModalBackdrop.style.display = 'block';
+    };
+    const closeDateModal = () => {
+        dateModal.style.display = 'none';
+        dateModalBackdrop.style.display = 'none';
+        editingConcursoId = null;
+    };
+    cancelDateBtn.addEventListener('click', closeDateModal);
+    dateModalBackdrop.addEventListener('click', closeDateModal);
+    confirmDateBtn.addEventListener('click', () => {
+        const concurso = state.concursos.find(c => c.id === editingConcursoId);
+        if (concurso && provaDateInput.value) {
+            concurso.data = provaDateInput.value;
+            state.activeConcursoId = concurso.id;
+            render();
+            closeDateModal();
+        } else {
+            alert('Por favor, selecione uma data válida.');
+        }
+    });
+
+    // Settings Modal Logic
+    const openSettingsModal = () => {
+        settingsMetaDiariaInput.value = state.metas.diaria;
+        settingsMetaSemanalInput.value = state.metas.semanal;
+        settingsMetaMensalInput.value = state.metas.mensal;
+        settingsModal.style.display = 'block';
+        settingsModalBackdrop.style.display = 'block';
+    };
+    const closeSettingsModal = () => {
+        settingsModal.style.display = 'none';
+        settingsModalBackdrop.style.display = 'none';
+    };
+    openSettingsBtn.addEventListener('click', openSettingsModal);
+    cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+    settingsModalBackdrop.addEventListener('click', closeSettingsModal);
+    confirmSettingsBtn.addEventListener('click', () => {
+        state.metas.diaria = parseInt(settingsMetaDiariaInput.value) || 0;
+        state.metas.semanal = parseInt(settingsMetaSemanalInput.value) || 0;
+        state.metas.mensal = parseInt(settingsMetaMensalInput.value) || 0;
+        render();
+        closeSettingsModal();
+    });
+
+    // --- LÓGICA DA API GEMINI ---
+    const showGeminiModal = (title) => { geminiModalTitle.textContent = title; geminiLoading.style.display = 'block'; geminiResponse.innerHTML = ''; geminiModal.style.display = 'block'; geminiModalBackdrop.style.display = 'block'; };
+    const closeGeminiModal = () => { geminiModal.style.display = 'none'; geminiModalBackdrop.style.display = 'none'; };
+    closeGeminiModalBtn.addEventListener('click', closeGeminiModal);
+    geminiModalBackdrop.addEventListener('click', closeGeminiModal);
+    const callGeminiAPI = async (prompt) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                if (prompt.includes("tópicos de estudo para")) { resolve({ text: `<p>Com base na matéria, aqui estão alguns tópicos essenciais para focar:</p><ul class="list-disc list-inside mt-2"><li>Princípios Fundamentais e Aplicados</li><li>Legislação Específica e Atualizações</li><li>Jurisprudência dos Tribunais Superiores</li><li>Resolução de Casos Práticos</li><li>Tópicos Avançados e Controvertidos</li></ul><p class="mt-4 text-xs text-gray-400">Dica: Adicione estes como assuntos e comece a resolver questões para medir seu conhecimento inicial.</p>` }); } 
+                else if (prompt.includes("dica de estudo com base no meu progresso")) { resolve({ text: `<p>Analisando seu progresso, a consistência é a chave. Mesmo que seja apenas por 30 minutos em um dia corrido, manter o contato com o material de estudo fortalece a memória de longo prazo.</p><p class="mt-3"><strong>Ação Sugerida:</strong> Tente a técnica de "revisão espaçada". Revise um tópico hoje, depois novamente em 2 dias, depois em uma semana. Isso combate a "curva do esquecimento". Você está no caminho certo, mantenha o foco e a disciplina! QAP Total!</p>` }); } 
+                else { resolve({ text: "Não foi possível gerar uma sugestão no momento." }); }
+            }, 1500);
+        });
+    };
+    const displayGeminiResponse = (htmlContent) => { geminiLoading.style.display = 'none'; geminiResponse.innerHTML = htmlContent; };
+    gerarAssuntosBtn.addEventListener('click', async () => {
+        const materia = state.materias.find(m => m.id === state.activeMateriaId);
+        if (!materia) return;
+        showGeminiModal(`✨ Sugestões para ${materia.nome}`);
+        const prompt = `Gere uma lista de 5 a 7 tópicos de estudo essenciais para a matéria de concurso público: "${materia.nome}". O foco é para o concurso da PCTO.`;
+        const response = await callGeminiAPI(prompt);
+        displayGeminiResponse(response.text);
+    });
+
+    // --- LÓGICA DO CRONÔMETRO ---
+    const formatTime = (seconds) => {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    };
+
+    const updateTimerDisplay = () => {
+        const now = new Date().getTime();
+        const elapsed = timer.elapsedTime + (now - timer.startTime);
+        const totalSeconds = Math.floor(elapsed / 1000);
+        const formattedTime = formatTime(totalSeconds);
+        timerDisplay.textContent = formattedTime;
+        timerBarDisplay.textContent = formattedTime;
+    };
+
+    const startTimer = () => {
+        timer.startTime = new Date().getTime();
+        timer.isRunning = true;
+        timer.isPaused = false;
+        timer.interval = setInterval(updateTimerDisplay, 1000);
+        timerScreen.classList.remove('hidden');
+        timerScreen.classList.add('flex');
+        mainContainer.classList.add('hidden');
+        timerPauseResumeBtn.textContent = 'Pausar';
+        resetInactivityTimer();
+    };
+
+    const pauseTimer = () => {
+        clearInterval(timer.interval);
+        const now = new Date().getTime();
+        timer.elapsedTime += (now - timer.startTime);
+        timer.isPaused = true;
+        timerPauseResumeBtn.textContent = 'Retomar';
+    };
+
+    const resumeTimer = () => {
+        timer.startTime = new Date().getTime();
+        timer.isPaused = false;
+        timer.interval = setInterval(updateTimerDisplay, 1000);
+        timerPauseResumeBtn.textContent = 'Pausar';
+    };
+
+    const finishTimer = () => {
+        clearInterval(timer.interval);
+        const now = new Date().getTime();
+        if (!timer.isPaused) {
+            timer.elapsedTime += (now - timer.startTime);
+        }
+        
+        timerScreen.classList.add('hidden');
+        timerScreen.classList.remove('flex');
+        mainContainer.classList.remove('hidden');
+
+        // Abre o modal de finalização
+        finishSessionModal.style.display = 'block';
+        finishSessionModalBackdrop.style.display = 'block';
+    };
+
+    openTimerSetupBtn.addEventListener('click', () => {
+        if (timer.isRunning) {
+            timerScreen.classList.remove('hidden');
+            timerScreen.classList.add('flex');
+            mainContainer.classList.add('hidden');
+            return;
+        }
+        if (state.materias.length === 0) {
+            alert('Cadastre uma matéria primeiro.');
+            return;
+        }
+        timerSetupMateriaSelect.innerHTML = '<option value="">Selecione uma matéria</option>';
+        state.materias.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.nome;
+            timerSetupMateriaSelect.appendChild(option);
+        });
+        timerSetupAssuntoInput.value = '';
+        document.getElementById('timer-assuntos-datalist').innerHTML = '';
+        timerSetupModal.style.display = 'block';
+        timerSetupModalBackdrop.style.display = 'block';
+    });
+
+    cancelTimerSetupBtn.addEventListener('click', () => {
+        timerSetupModal.style.display = 'none';
+        timerSetupModalBackdrop.style.display = 'none';
+    });
+    
+    timerSetupMateriaSelect.addEventListener('change', (e) => {
+        const materiaId = e.target.value;
+        const datalist = document.getElementById('timer-assuntos-datalist');
+        datalist.innerHTML = '';
+        if (materiaId) {
+            const materia = state.materias.find(m => m.id === materiaId);
+            if (materia) {
+                materia.assuntos.forEach(assunto => {
+                    const option = document.createElement('option');
+                    option.value = assunto.nome;
+                    datalist.appendChild(option);
+                });
+            }
+        }
+    });
+
+    confirmTimerSetupBtn.addEventListener('click', () => {
+        const materiaId = timerSetupMateriaSelect.value;
+        const assuntoNome = timerSetupAssuntoInput.value.trim();
+        if (!materiaId || !assuntoNome) {
+            alert('Por favor, selecione a matéria e informe o assunto.');
+            return;
+        }
+        const materia = state.materias.find(m => m.id === materiaId);
+        timer.materiaId = materiaId;
+        timer.assuntoNome = assuntoNome;
+        timerInfoMateria.textContent = materia.nome;
+        timerInfoAssunto.textContent = assuntoNome;
+        
+        timerSetupModal.style.display = 'none';
+        timerSetupModalBackdrop.style.display = 'none';
+        startTimer();
+    });
+    
+    timerPauseResumeBtn.addEventListener('click', () => {
+        if (timer.isPaused) {
+            resumeTimer();
+        } else {
+            pauseTimer();
+        }
+    });
+
+    timerFinishBtn.addEventListener('click', finishTimer);
+
+    // Lógica de inatividade da tela do timer
+    const resetInactivityTimer = () => {
+        timerHeader.classList.remove('fade-out');
+        timerControls.classList.remove('fade-out');
+        clearTimeout(inactivityTimeout);
+        inactivityTimeout = setTimeout(() => {
+            timerHeader.classList.add('fade-out');
+            timerControls.classList.add('fade-out');
+        }, 5000);
+    };
+    timerScreen.addEventListener('mousemove', resetInactivityTimer);
+
+    // Lógica do Modal de Finalização de Sessão
+    let currentRating = 0;
+    learningRating.addEventListener('click', (e) => {
+        if (e.target.classList.contains('star')) {
+            currentRating = e.target.dataset.value;
+            const stars = learningRating.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.classList.toggle('selected', star.dataset.value <= currentRating);
+                star.classList.toggle('fas', star.dataset.value <= currentRating);
+                star.classList.toggle('far', star.dataset.value > currentRating);
+            });
+        }
+    });
+
+    confirmFinishSessionBtn.addEventListener('click', () => {
+        const totalMinutes = Math.floor(timer.elapsedTime / 60000);
+        const resolvidas = parseInt(finishSessionResolvidasInput.value) || 0;
+        const acertadas = parseInt(finishSessionAcertadasInput.value) || 0;
+
+        if (acertadas > resolvidas) {
+            alert('O número de acertos não pode ser maior que o de questões resolvidas.');
+            return;
+        }
+
+        const materia = state.materias.find(m => m.id === timer.materiaId);
+        if (materia) {
+            materia.horasEstudo.push({
+                id: Date.now().toString(),
+                data: new Date().toISOString().split('T')[0],
+                minutos: totalMinutes,
+                assuntoNome: timer.assuntoNome,
+                aprendizagem: currentRating,
+                resolvidas: resolvidas,
+                acertadas: acertadas
+            });
+
+            if (resolvidas > 0) {
+                let assunto = materia.assuntos.find(a => a.nome.toLowerCase() === timer.assuntoNome.toLowerCase());
+                if (assunto) {
+                    assunto.resolvidas += resolvidas;
+                    assunto.acertadas += acertadas;
+                } else {
+                    materia.assuntos.push({ id: Date.now().toString(), nome: timer.assuntoNome, resolvidas: resolvidas, acertadas: acertadas });
+                }
+            }
+        }
+        
+        // Reset timer
+        timer.isRunning = false;
+        timer.isPaused = false;
+        timer.elapsedTime = 0;
+        timer.interval = null;
+        timerBarDisplay.textContent = '00:00:00';
+
+        // Reset e fecha modal de finalização
+        finishSessionResolvidasInput.value = '';
+        finishSessionAcertadasInput.value = '';
+        currentRating = 0;
+        learningRating.querySelectorAll('.star').forEach(star => {
+            star.classList.remove('selected', 'fas');
+            star.classList.add('far');
+        });
+        finishSessionModal.style.display = 'none';
+        finishSessionModalBackdrop.style.display = 'none';
+
+        render();
+    });
+    
+    // --- INICIALIZAÇÃO ---
+    loadData();
+    atualizarFraseDoDia();
+    render();
+});
+</script>
+</body>
+</html>
