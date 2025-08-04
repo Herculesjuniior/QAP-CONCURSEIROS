@@ -26,6 +26,32 @@
         .timer-ui-element.fade-out { opacity: 0; }
         .rating .star { color: #4b5563; }
         .rating .star.selected, .rating .star:hover, .rating .star:hover ~ .star { color: #f59e0b; }
+        .anotacao-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .anotacao-card:hover {
+            transform: translateY(-5px);
+        }
+        .anotacao-card-content {
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            display: -webkit-box;
+        }
+        .goal-checkbox:checked + label .checkbox-icon {
+            display: block;
+        }
+        #open-settings-btn {
+            opacity: 0.3;
+        }
+        #open-settings-btn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 font-sans antialiased">
@@ -34,10 +60,11 @@
     <div id="main-container" class="flex flex-col md:flex-row min-h-screen">
 
         <!-- Barra Lateral Esquerda -->
-        <aside class="w-full md:w-1/4 bg-gray-800 p-4 border-r border-gray-700 flex flex-col">
+        <aside class="w-full md:w-1/4 bg-gray-800 p-4 border-r border-gray-700 flex flex-col relative">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-white">QAP CONCURSEIROS</h1>
+                 <h1 class="text-2xl font-bold text-white">QAP CONCURSEIROS</h1>
             </div>
+            
             <div class="mb-4">
                 <button id="open-add-materia-modal-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i> Cadastrar nova Matéria
@@ -46,7 +73,7 @@
             
             <div class="overflow-y-auto flex-grow">
                 <ul id="main-nav-list">
-                    <!-- Botões Menu Principal, Desempenho e Metas -->
+                    <!-- Botões do Menu Principal, Desempenho, Metas, Revisões e Anotações -->
                 </ul>
                 <hr class="border-gray-700 my-2">
                 <h3 class="px-3 py-2 text-xs font-bold text-gray-400 uppercase">Matérias</h3>
@@ -58,15 +85,25 @@
 
         <!-- Painel Principal Direito -->
         <main class="w-full md:w-3/4 p-6 overflow-y-auto relative">
-            
-            <!-- Botão de Configurações -->
-            <button id="open-settings-btn" class="fixed top-6 right-6 bg-white bg-opacity-20 hover:bg-opacity-30 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-all opacity-50 hover:opacity-100">
-                <i class="fas fa-cog"></i>
-            </button>
+            <!-- Header do Painel Principal -->
+            <header class="absolute top-0 right-0 p-6 flex items-center gap-4">
+                <div id="profile-section" class="flex items-center cursor-pointer group">
+                    <div class="text-right mr-3">
+                        <h2 id="profile-name" class="font-bold text-white">Concurseiro</h2>
+                        <p class="text-xs text-gray-400">Ver Perfil</p>
+                    </div>
+                    <img id="profile-avatar" src="https://placehold.co/48x48/374151/FFFFFF?text=Q" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-gray-600 group-hover:border-blue-500 transition-colors">
+                </div>
+            </header>
 
+            <!-- Botão de Configurações Fixo -->
+            <button id="open-settings-btn" class="fixed bottom-6 left-6 bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg z-30 transition-all">
+                <i class="fas fa-cog fa-lg"></i>
+            </button>
+            
             <!-- PAINEL MENU PRINCIPAL -->
             <div id="menu-principal-panel">
-                 <h2 class="text-3xl font-semibold mb-6">Olá, Concurseiro. Bem-vindo!</h2>
+                 <h2 class="text-3xl font-semibold mb-6 pt-12">Olá, Concurseiro. Bem-vindo!</h2>
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <!-- Card Aproveitamento -->
                     <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -125,6 +162,7 @@
 
             <!-- PAINEL DESEMPENHO -->
             <div id="desempenho-panel" class="hidden">
+                <h2 class="text-3xl font-semibold mb-6 pt-12">Desempenho Geral</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Coluna Principal: Análise de Performance -->
                     <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -149,46 +187,132 @@
                             </div>
                             <div id="chart-legend" class="flex justify-center space-x-4 mt-4 text-sm"></div>
                         </div>
+                         <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <button id="gerar-dica-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">
+                                Gerar Dica de Estudo ✨
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- PAINEL METAS -->
             <div id="metas-panel" class="hidden">
-                <h2 class="text-3xl font-semibold mb-6">Metas de Estudo</h2>
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-semibold mb-6 pt-12">Metas e Progresso</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Coluna Esquerda: Metas e Checklist -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Metas Gerais</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between items-end mb-1"><label class="font-bold">Meta Diária</label><span id="progresso-diario-texto" class="text-sm text-gray-400">0h / 0h</span></div>
+                                    <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-diario-barra" class="bg-green-600 h-6 rounded-full" style="width: 0%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between items-end mb-1"><label class="font-bold">Meta Semanal</label><span id="progresso-semanal-texto" class="text-sm text-gray-400">0h / 0h</span></div>
+                                    <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-semanal-barra" class="bg-yellow-500 h-6 rounded-full" style="width: 0%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between items-end mb-1"><label class="font-bold">Meta de Questões (Semana)</label><span id="progresso-questoes-texto" class="text-sm text-gray-400">0 / 0</span></div>
+                                    <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-questoes-barra" class="bg-indigo-500 h-6 rounded-full" style="width: 0%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <div class="flex justify-between items-center mb-4">
+                               <h3 class="text-xl font-bold">Checklist da Semana</h3>
+                               <button id="add-checklist-item-btn" class="text-gray-400 hover:text-white"><i class="fas fa-plus-circle"></i> Adicionar Tarefa</button>
+                            </div>
+                            <div id="checklist-container" class="space-y-3"></div>
+                        </div>
+                    </div>
+                    <!-- Coluna Direita: Indicadores e Gráfico -->
                     <div class="space-y-6">
-                        <!-- Meta Diária -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="font-bold">Meta Diária</label>
-                                <span id="progresso-diario-texto" class="text-sm text-gray-400">0h / 0h</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-diario-barra" class="bg-green-600 h-6 rounded-full" style="width: 0%"></div></div>
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+                            <h4 class="font-semibold text-gray-400 mb-2">Constância</h4>
+                            <p class="text-4xl font-bold text-orange-400"><span id="streak-dias">0</span> 🔥</p>
+                            <p class="text-xs text-gray-500">Dias seguidos batendo a meta</p>
                         </div>
-                        <!-- Meta Semanal -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="font-bold">Meta Semanal</label>
-                                <span id="progresso-semanal-texto" class="text-sm text-gray-400">0h / 0h</span>
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h4 class="font-semibold text-gray-400 mb-4 text-center">Distribuição de Horas (Semana)</h4>
+                            <div class="relative h-48">
+                                <canvas id="horas-materia-chart"></canvas>
                             </div>
-                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-semanal-barra" class="bg-yellow-500 h-6 rounded-full" style="width: 0%"></div></div>
                         </div>
-                        <!-- Meta Mensal -->
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="font-bold">Meta Mensal</label>
-                                <span id="progresso-mensal-texto" class="text-sm text-gray-400">0h / 0h</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-6"><div id="progresso-mensal-barra" class="bg-purple-600 h-6 rounded-full" style="width: 0%"></div></div>
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h4 class="font-semibold text-gray-400 mb-2">Ranking de Desempenho</h4>
+                            <div id="ranking-desempenho-container"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- PAINEL REVISÕES -->
+            <div id="revisoes-panel" class="hidden">
+                <h2 class="text-3xl font-semibold mb-6 pt-12">Controle de Revisões</h2>
+                <div id="revisoes-alerta-vencidas" class="hidden bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg relative mb-6" role="alert">
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                             <button id="revisar-agora-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center text-lg">
+                                <i class="fas fa-bolt mr-2"></i> Revisar Agora!
+                            </button>
+                        </div>
+                        <!-- Bloco para Agendar Novas Revisões -->
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Agendar Nova Revisão</h3>
+                            <div id="revisoes-materias-list" class="space-y-2 max-h-48 overflow-y-auto">
+                                <!-- Matérias para agendar revisão serão inseridas aqui -->
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Filtros</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="filtro-revisao-materia" class="block text-sm font-medium text-gray-400 mb-1">Matéria</label>
+                                    <select id="filtro-revisao-materia" class="w-full bg-gray-700 p-2 rounded border border-gray-600 text-sm">
+                                        <option value="todas">Todas as Matérias</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="filtro-revisao-data" class="block text-sm font-medium text-gray-400 mb-1">Período</label>
+                                    <select id="filtro-revisao-data" class="w-full bg-gray-700 p-2 rounded border border-gray-600 text-sm">
+                                        <option value="todas">Todas as Datas</option>
+                                        <option value="hoje">Hoje</option>
+                                        <option value="semana">Esta Semana</option>
+                                        <option value="vencidas">Vencidas</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">Revisões Agendadas</h3>
+                        <div id="revisoes-agendadas-list" class="space-y-3 max-h-96 overflow-y-auto">
+                            <!-- Lista de revisões agendadas -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL ANOTAÇÕES -->
+            <div id="anotacoes-panel" class="hidden">
+                <div class="flex justify-between items-center mb-6 pt-12">
+                    <h2 class="text-3xl font-semibold">Minhas Anotações</h2>
+                    <button id="open-add-anotacao-modal-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Nova Anotação
+                    </button>
+                </div>
+                <div id="anotacoes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Anotações salvas aparecerão aqui -->
+                </div>
+            </div>
+
             <!-- PAINEL MATÉRIA -->
             <div id="materia-panel" class="hidden">
-                <h2 id="materia-title" class="text-3xl font-bold mb-6"></h2>
+                <h2 id="materia-title" class="text-3xl font-bold mb-6 pt-12"></h2>
                 <div class="mb-4 border-b border-gray-700">
                     <nav class="flex space-x-4" aria-label="Tabs">
                         <a href="#" id="tab-questoes" class="tab-link active-tab text-white px-3 py-2 font-medium text-sm rounded-t-md">Questões Resolvidas</a>
@@ -250,6 +374,97 @@
     </div>
 
     <!-- Modais -->
+    <div id="profile-modal-backdrop" class="modal-backdrop"></div>
+    <div id="profile-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 class="text-xl font-bold mb-6">Editar Perfil</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="profile-name-input" class="block mb-2 text-sm font-medium text-gray-300">Nome de Exibição</label>
+                <input type="text" id="profile-name-input" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
+            </div>
+            <div>
+                <label for="profile-image-upload" class="block mb-2 text-sm font-medium text-gray-300">Foto de Perfil</label>
+                <input type="file" id="profile-image-upload" accept="image/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                <p class="text-xs text-gray-500 mt-1">Ou cole a URL da imagem abaixo:</p>
+                <input type="text" id="profile-image-input" class="w-full bg-gray-700 p-2 rounded border border-gray-600 mt-1" placeholder="https://exemplo.com/imagem.png">
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="cancel-profile-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-profile-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+
+    <div id="view-anotacao-modal-backdrop" class="modal-backdrop"></div>
+    <div id="view-anotacao-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 shadow-lg">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <h3 id="view-anotacao-titulo" class="text-2xl font-bold"></h3>
+                <p id="view-anotacao-materia" class="text-sm text-blue-400"></p>
+            </div>
+            <span id="view-anotacao-importancia" class="text-xs font-bold py-1 px-3 rounded-full"></span>
+        </div>
+        <div id="view-anotacao-conteudo" class="bg-gray-900/50 p-4 rounded-md max-h-80 overflow-y-auto mt-4 whitespace-pre-wrap">
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="edit-viewed-anotacao-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Editar</button>
+            <button id="close-view-anotacao-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Fechar</button>
+        </div>
+    </div>
+
+    <div id="anotacao-modal-backdrop" class="modal-backdrop"></div>
+    <div id="anotacao-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/2 shadow-lg">
+        <h3 id="anotacao-modal-title" class="text-xl font-bold mb-6">Nova Anotação</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="anotacao-titulo-input" class="block mb-2 text-sm font-medium text-gray-300">Título</label>
+                <input type="text" id="anotacao-titulo-input" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Título da sua anotação...">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="anotacao-materia-select" class="block mb-2 text-sm font-medium text-gray-300">Matéria</label>
+                    <select id="anotacao-materia-select" class="w-full bg-gray-700 p-2 rounded border border-gray-600"></select>
+                </div>
+                <div>
+                    <label for="anotacao-importancia-input" class="block mb-2 text-sm font-medium text-gray-300">Importância (1 a 10)</label>
+                    <input type="number" id="anotacao-importancia-input" min="1" max="10" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Ex: 8">
+                </div>
+            </div>
+            <div>
+                <label for="anotacao-conteudo-textarea" class="block mb-2 text-sm font-medium text-gray-300">Conteúdo</label>
+                <textarea id="anotacao-conteudo-textarea" rows="8" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Escreva sua anotação aqui..."></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+            <button id="cancel-anotacao-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="confirm-anotacao-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
+        </div>
+    </div>
+
+    <div id="revisao-modal-backdrop" class="modal-backdrop"></div>
+    <div id="revisao-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
+        <h3 id="revisao-modal-title" class="text-xl font-bold mb-4">Agendar Revisão</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="revisao-assunto-select" class="block mb-2 text-sm font-medium text-gray-300">Assunto (Opcional)</label>
+                <select id="revisao-assunto-select" class="w-full bg-gray-700 p-2 rounded border border-gray-600"></select>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-300">Revisar em:</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <button data-dias="1" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">1 dia</button>
+                    <button data-dias="7" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">7 dias</button>
+                    <button data-dias="15" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">15 dias</button>
+                    <button data-dias="30" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">30 dias</button>
+                    <button data-dias="60" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">60 dias</button>
+                    <button data-dias="90" class="revisao-dias-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">90 dias</button>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end mt-8">
+            <button id="cancel-revisao-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+        </div>
+    </div>
     <div id="finish-session-modal-backdrop" class="modal-backdrop"></div>
     <div id="finish-session-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
         <h3 class="text-xl font-bold mb-6">Finalizar Sessão</h3>
@@ -297,7 +512,7 @@
     </div>
     <div id="settings-modal-backdrop" class="modal-backdrop"></div>
     <div id="settings-modal" class="modal bg-gray-800 rounded-lg p-6 w-11/12 md:w-1/3 shadow-lg">
-        <h3 class="text-xl font-bold mb-6">Configurações</h3>
+        <h3 class="text-xl font-bold mb-6">Configurações de Metas</h3>
         <div class="space-y-4">
             <div>
                 <label for="settings-meta-diaria" class="block mb-2 text-sm font-medium text-gray-300">Meta Diária (Horas)</label>
@@ -308,12 +523,12 @@
                 <input type="number" id="settings-meta-semanal" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
             </div>
             <div>
-                <label for="settings-meta-mensal" class="block mb-2 text-sm font-medium text-gray-300">Meta Mensal (Horas)</label>
-                <input type="number" id="settings-meta-mensal" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
+                <label for="settings-meta-questoes" class="block mb-2 text-sm font-medium text-gray-300">Meta Semanal (Questões)</label>
+                <input type="number" id="settings-meta-questoes" min="0" class="w-full bg-gray-700 p-2 rounded border border-gray-600">
             </div>
         </div>
         <div class="flex justify-end gap-4 mt-8">
-            <button id="cancel-settings-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Cancelar</button>
+            <button id="cancel-settings-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Fechar</button>
             <button id="confirm-settings-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Salvar</button>
         </div>
     </div>
@@ -377,8 +592,8 @@
         </div>
     </div>
 
-
-<script>
+<script type="module">
+    // Este script não usa mais Firebase, tudo é salvo localmente no seu navegador.
 document.addEventListener('DOMContentLoaded', () => {
     // --- ELEMENTOS DO DOM ---
     const mainContainer = document.getElementById('main-container');
@@ -389,6 +604,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuPrincipalPanel = document.getElementById('menu-principal-panel');
     const desempenhoPanel = document.getElementById('desempenho-panel');
     const metasPanel = document.getElementById('metas-panel');
+    const revisoesPanel = document.getElementById('revisoes-panel');
+    const anotacoesPanel = document.getElementById('anotacoes-panel');
     const materiaPanel = document.getElementById('materia-panel');
     
     const materiaTitle = document.getElementById('materia-title');
@@ -420,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tempoMesEl = document.getElementById('tempo-mes');
     const tempoTotalEl = document.getElementById('tempo-total');
 
-    // Modal de Edição
+    // Modal de Edição de Matéria
     const editMateriaModalBackdrop = document.getElementById('edit-materia-modal-backdrop');
     const editMateriaModal = document.getElementById('edit-materia-modal');
     const editMateriaInput = document.getElementById('edit-materia-input');
@@ -478,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = document.getElementById('settings-modal');
     const settingsMetaDiariaInput = document.getElementById('settings-meta-diaria');
     const settingsMetaSemanalInput = document.getElementById('settings-meta-semanal');
-    const settingsMetaMensalInput = document.getElementById('settings-meta-mensal');
+    const settingsMetaQuestoesInput = document.getElementById('settings-meta-questoes');
     const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
     const confirmSettingsBtn = document.getElementById('confirm-settings-btn');
     
@@ -507,6 +724,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const finishSessionResolvidasInput = document.getElementById('finish-session-resolvidas');
     const finishSessionAcertadasInput = document.getElementById('finish-session-acertadas');
     const confirmFinishSessionBtn = document.getElementById('confirm-finish-session-btn');
+    
+    // Revisões
+    const revisoesMateriasList = document.getElementById('revisoes-materias-list');
+    const revisoesAgendadasList = document.getElementById('revisoes-agendadas-list');
+    const revisaoModalBackdrop = document.getElementById('revisao-modal-backdrop');
+    const revisaoModal = document.getElementById('revisao-modal');
+    const revisaoModalTitle = document.getElementById('revisao-modal-title');
+    const revisaoAssuntoSelect = document.getElementById('revisao-assunto-select');
+    const cancelRevisaoBtn = document.getElementById('cancel-revisao-btn');
+    const filtroRevisaoMateria = document.getElementById('filtro-revisao-materia');
+    const filtroRevisaoData = document.getElementById('filtro-revisao-data');
+
+    // Anotações
+    const openAddAnotacaoModalBtn = document.getElementById('open-add-anotacao-modal-btn');
+    const anotacoesList = document.getElementById('anotacoes-list');
+    const anotacaoModalBackdrop = document.getElementById('anotacao-modal-backdrop');
+    const anotacaoModal = document.getElementById('anotacao-modal');
+    const anotacaoModalTitle = document.getElementById('anotacao-modal-title');
+    const anotacaoTituloInput = document.getElementById('anotacao-titulo-input');
+    const anotacaoMateriaSelect = document.getElementById('anotacao-materia-select');
+    const anotacaoImportanciaInput = document.getElementById('anotacao-importancia-input');
+    const anotacaoConteudoTextarea = document.getElementById('anotacao-conteudo-textarea');
+    const cancelAnotacaoBtn = document.getElementById('cancel-anotacao-btn');
+    const confirmAnotacaoBtn = document.getElementById('confirm-anotacao-btn');
+    const viewAnotacaoModalBackdrop = document.getElementById('view-anotacao-modal-backdrop');
+    const viewAnotacaoModal = document.getElementById('view-anotacao-modal');
+
+    // Profile
+    const profileSection = document.getElementById('profile-section');
+    const profileModalBackdrop = document.getElementById('profile-modal-backdrop');
+    const profileModal = document.getElementById('profile-modal');
+    const profileNameInput = document.getElementById('profile-name-input');
+    const profileImageInput = document.getElementById('profile-image-input');
+    const profileImageUpload = document.getElementById('profile-image-upload');
+    const cancelProfileBtn = document.getElementById('cancel-profile-btn');
+    const confirmProfileBtn = document.getElementById('confirm-profile-btn');
 
 
     // --- DADOS E ESTADO DA APLICAÇÃO ---
@@ -546,16 +799,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let state = {
         materias: [],
         concursos: [],
+        revisoes: [],
+        anotacoes: [],
+        checklist: [],
+        userProfile: {
+            name: 'Concurseiro',
+            imageUrl: 'https://placehold.co/48x48/374151/FFFFFF?text=Q'
+        },
         activeConcursoId: null,
         activeMateriaId: null,
         activeView: 'menuPrincipal', 
-        metas: { diaria: 2, semanal: 10, mensal: 40 },
+        metas: { diaria: 2, semanal: 10, questoes: 100 },
         fraseDoDia: { texto: "", autor: "", data: "" },
     };
     let editingMateriaId = null;
     let editingConcursoId = null;
+    let editingAnotacaoId = null;
+    let viewingAnotacaoId = null;
+    let agendandoRevisaoMateriaId = null;
     let geralChartInstance = null;
     let weeklyChartInstance = null;
+    let horasMateriaChartInstance = null;
     let countdownInterval = null;
     let timer = {
         interval: null,
@@ -577,12 +841,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedState = localStorage.getItem('qapConcurseirosState');
         if (savedState) {
             state = JSON.parse(savedState);
-            if (!state.concursos) state.concursos = []; // Compatibilidade com versões antigas
+            // Garantir compatibilidade com versões antigas
+            if (!state.concursos) state.concursos = [];
             if (!state.activeConcursoId) state.activeConcursoId = null;
+            if (!state.revisoes) state.revisoes = [];
+            if (!state.anotacoes || !Array.isArray(state.anotacoes)) state.anotacoes = [];
+            if (!state.userProfile) state.userProfile = { name: 'Concurseiro', imageUrl: 'https://placehold.co/48x48/374151/FFFFFF?text=Q' };
+            if (!state.metas.questoes) state.metas.questoes = 100;
+            if (!state.checklist) state.checklist = [];
         }
     };
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
+    const renderProfile = () => {
+        document.getElementById('profile-name').textContent = state.userProfile.name;
+        const avatar = document.getElementById('profile-avatar');
+        avatar.src = state.userProfile.imageUrl;
+        avatar.onerror = () => {
+            avatar.src = 'https://placehold.co/48x48/374151/FFFFFF?text=Q';
+        };
+    };
+
     const atualizarFraseDoDia = () => {
         const hoje = new Date().toISOString().split('T')[0];
         if (!state.fraseDoDia || state.fraseDoDia.data !== hoje) {
@@ -606,7 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const navItems = [
             { id: 'menuPrincipal', icon: 'fa-home', label: 'Menu Principal' },
             { id: 'desempenho', icon: 'fa-chart-pie', label: 'Desempenho' },
-            { id: 'metas', icon: 'fa-bullseye', label: 'Metas' }
+            { id: 'metas', icon: 'fa-bullseye', label: 'Metas' },
+            { id: 'revisoes', icon: 'fa-calendar-check', label: 'Revisões' },
+            { id: 'anotacoes', icon: 'fa-pencil-alt', label: 'Anotações' }
         ];
 
         navItems.forEach(item => {
@@ -654,6 +935,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 if (confirm(`Tem certeza que deseja excluir a matéria "${materia.nome}" e todos os seus dados?`)) {
                     state.materias = state.materias.filter(m => m.id !== materia.id);
+                    state.revisoes = state.revisoes.filter(r => r.materiaId !== materia.id); // Remove revisões associadas
+                    state.anotacoes = state.anotacoes.filter(a => a.materiaId !== materia.id); // Remove anotações associadas
                     if (state.activeMateriaId === materia.id) {
                         state.activeView = 'menuPrincipal';
                         state.activeMateriaId = null;
@@ -807,49 +1090,319 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
         
-        const dayOfWeek = now.getDay();
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Seg=0, Dom=6
         const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+        startOfWeek.setDate(now.getDate() - dayOfWeek);
         startOfWeek.setHours(0, 0, 0, 0);
 
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        let minutosHoje = 0, minutosSemana = 0, minutosMes = 0;
+        let minutosHoje = 0, minutosSemana = 0, questoesSemana = 0;
 
         state.materias.forEach(materia => {
             materia.horasEstudo.forEach(reg => {
                 const regDate = new Date(reg.data + 'T00:00:00');
-                if (regDate >= startOfMonth) {
-                    minutosMes += reg.minutos;
+                if (reg.data === todayStr) {
+                    minutosHoje += reg.minutos;
                 }
                 if (regDate >= startOfWeek) {
                     minutosSemana += reg.minutos;
-                }
-                if (reg.data === todayStr) {
-                    minutosHoje += reg.minutos;
+                    questoesSemana += reg.resolvidas || 0;
                 }
             });
         });
 
         const formatHours = (minutes) => (minutes / 60).toFixed(1);
 
-        // Atualiza meta diária
+        // Metas Gerais
         const metaDiariaMin = state.metas.diaria * 60;
         const percDiaria = metaDiariaMin > 0 ? Math.min((minutosHoje / metaDiariaMin) * 100, 100) : 0;
         document.getElementById('progresso-diario-barra').style.width = `${percDiaria}%`;
         document.getElementById('progresso-diario-texto').textContent = `${formatHours(minutosHoje)}h / ${state.metas.diaria}h`;
 
-        // Atualiza meta semanal
         const metaSemanalMin = state.metas.semanal * 60;
         const percSemanal = metaSemanalMin > 0 ? Math.min((minutosSemana / metaSemanalMin) * 100, 100) : 0;
         document.getElementById('progresso-semanal-barra').style.width = `${percSemanal}%`;
         document.getElementById('progresso-semanal-texto').textContent = `${formatHours(minutosSemana)}h / ${state.metas.semanal}h`;
 
-        // Atualiza meta mensal
-        const metaMensalMin = state.metas.mensal * 60;
-        const percMensal = metaMensalMin > 0 ? Math.min((minutosMes / metaMensalMin) * 100, 100) : 0;
-        document.getElementById('progresso-mensal-barra').style.width = `${percMensal}%`;
-        document.getElementById('progresso-mensal-texto').textContent = `${formatHours(minutosMes)}h / ${state.metas.mensal}h`;
+        const percQuestoes = state.metas.questoes > 0 ? Math.min((questoesSemana / state.metas.questoes) * 100, 100) : 0;
+        document.getElementById('progresso-questoes-barra').style.width = `${percQuestoes}%`;
+        document.getElementById('progresso-questoes-texto').textContent = `${questoesSemana} / ${state.metas.questoes}`;
+        
+        renderHorasMateriaChart();
+        renderRankingDesempenho();
+        renderChecklist();
+        renderStreak();
+    };
+
+    const renderHorasMateriaChart = () => {
+        const ctx = document.getElementById('horas-materia-chart').getContext('2d');
+        const now = new Date();
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - dayOfWeek);
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const horasPorMateria = {};
+        state.materias.forEach(m => {
+            let minutos = 0;
+            m.horasEstudo.forEach(reg => {
+                if (new Date(reg.data + 'T00:00:00') >= startOfWeek) {
+                    minutos += reg.minutos;
+                }
+            });
+            if (minutos > 0) {
+                horasPorMateria[m.nome] = minutos / 60;
+            }
+        });
+
+        const labels = Object.keys(horasPorMateria);
+        const data = Object.values(horasPorMateria);
+
+        if (horasMateriaChartInstance) {
+            horasMateriaChartInstance.destroy();
+        }
+        horasMateriaChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#eab308'],
+                    borderColor: '#1f2937',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#d1d5db',
+                            boxWidth: 12,
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    const renderRankingDesempenho = () => {
+        const container = document.getElementById('ranking-desempenho-container');
+        const materiasPerformance = [];
+        state.materias.forEach(materia => {
+            let resolvidas = 0, acertos = 0;
+            materia.assuntos.forEach(a => { resolvidas += a.resolvidas; acertos += a.acertadas; });
+            if (resolvidas > 0) {
+                materiasPerformance.push({ nome: materia.nome, perf: (acertos / resolvidas) * 100 });
+            }
+        });
+
+        container.innerHTML = '';
+        if (materiasPerformance.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500">Sem dados de desempenho.</p>';
+            return;
+        }
+
+        materiasPerformance.sort((a, b) => b.perf - a.perf);
+        
+        const melhor = materiasPerformance[0];
+        const pior = materiasPerformance[materiasPerformance.length - 1];
+
+        container.innerHTML = `
+            <div class="flex items-center text-sm mb-2">
+                <span class="mr-2 text-green-400">📈</span>
+                <div>
+                    <p class="font-bold">${melhor.nome}</p>
+                    <p class="text-xs text-gray-400">${melhor.perf.toFixed(1)}% de acerto</p>
+                </div>
+            </div>
+            <div class="flex items-center text-sm">
+                <span class="mr-2 text-red-400">⚠️</span>
+                <div>
+                    <p class="font-bold">${pior.nome}</p>
+                    <p class="text-xs text-gray-400">${pior.perf.toFixed(1)}% de acerto</p>
+                </div>
+            </div>
+        `;
+    };
+
+    const renderChecklist = () => {
+        const container = document.getElementById('checklist-container');
+        container.innerHTML = '';
+        if (state.checklist.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500">Adicione tarefas para a sua semana.</p>';
+        } else {
+            state.checklist.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-gray-700/50 p-3 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="checkbox" id="check-${item.id}" data-id="${item.id}" class="goal-checkbox hidden" ${item.done ? 'checked' : ''}>
+                        <label for="check-${item.id}" class="flex items-center cursor-pointer">
+                            <span class="w-5 h-5 border-2 border-gray-500 rounded-md mr-3 flex items-center justify-center">
+                                <i class="fas fa-check text-green-400 hidden checkbox-icon"></i>
+                            </span>
+                            <span class="${item.done ? 'line-through text-gray-500' : ''}">${item.text}</span>
+                        </label>
+                    </div>
+                    <button data-id="${item.id}" class="delete-checklist-item-btn text-gray-500 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+    };
+
+    const renderStreak = () => {
+        let streak = 0;
+        let currentDate = new Date();
+        
+        for (let i = 0; i < 365; i++) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            let minutosDoDia = 0;
+            state.materias.forEach(m => {
+                m.horasEstudo.forEach(reg => {
+                    if (reg.data === dateStr) {
+                        minutosDoDia += reg.minutos;
+                    }
+                });
+            });
+
+            if (minutosDoDia >= state.metas.diaria * 60) {
+                streak++;
+            } else {
+                break;
+            }
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        document.getElementById('streak-dias').textContent = streak;
+    };
+
+    const renderRevisoes = () => {
+        const alertaVencidas = document.getElementById('revisoes-alerta-vencidas');
+        
+        // Renderiza a lista de matérias para agendar
+        revisoesMateriasList.innerHTML = '';
+        if (state.materias.length === 0) {
+            revisoesMateriasList.innerHTML = '<p class="text-gray-500 text-center text-sm">Cadastre uma matéria primeiro.</p>';
+        } else {
+            state.materias.forEach(materia => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-gray-700/50 p-3 rounded-lg';
+                item.innerHTML = `<span>${materia.nome}</span><button data-materia-id="${materia.id}" class="agendar-revisao-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full">Agendar</button>`;
+                revisoesMateriasList.appendChild(item);
+            });
+        }
+        document.querySelectorAll('.agendar-revisao-btn').forEach(btn => btn.addEventListener('click', (e) => openRevisaoModal(e.target.dataset.materiaId)));
+
+        // Popula o dropdown de filtro de matérias
+        const selectedMateriaValue = filtroRevisaoMateria.value;
+        filtroRevisaoMateria.innerHTML = '<option value="todas">Todas as Matérias</option>';
+        state.materias.forEach(materia => {
+            const option = document.createElement('option');
+            option.value = materia.id;
+            option.textContent = materia.nome;
+            filtroRevisaoMateria.appendChild(option);
+        });
+        filtroRevisaoMateria.value = selectedMateriaValue;
+
+        // Filtra as revisões
+        let revisoesFiltradas = [...state.revisoes];
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        if (filtroRevisaoMateria.value !== 'todas') {
+            revisoesFiltradas = revisoesFiltradas.filter(r => r.materiaId === filtroRevisaoMateria.value);
+        }
+
+        switch (filtroRevisaoData.value) {
+            case 'hoje':
+                revisoesFiltradas = revisoesFiltradas.filter(r => new Date(r.dataRevisao + 'T00:00:00').getTime() === hoje.getTime());
+                break;
+            case 'semana':
+                const inicioSemana = new Date(hoje);
+                inicioSemana.setDate(hoje.getDate() - (hoje.getDay() === 0 ? 6 : hoje.getDay() - 1));
+                const fimSemana = new Date(inicioSemana);
+                fimSemana.setDate(inicioSemana.getDate() + 6);
+                revisoesFiltradas = revisoesFiltradas.filter(r => {
+                    const dataRevisao = new Date(r.dataRevisao + 'T00:00:00');
+                    return dataRevisao >= inicioSemana && dataRevisao <= fimSemana;
+                });
+                break;
+            case 'vencidas':
+                revisoesFiltradas = revisoesFiltradas.filter(r => new Date(r.dataRevisao + 'T00:00:00') < hoje);
+                break;
+        }
+
+        // Renderiza a lista de revisões agendadas
+        revisoesAgendadasList.innerHTML = '';
+        if (revisoesFiltradas.length === 0) {
+            revisoesAgendadasList.innerHTML = '<p class="text-gray-500 text-center">Nenhuma revisão encontrada para este filtro.</p>';
+        } else {
+            const sortedRevisoes = revisoesFiltradas.sort((a, b) => new Date(a.dataRevisao) - new Date(b.dataRevisao));
+            sortedRevisoes.forEach(revisao => {
+                const dataRevisao = new Date(revisao.dataRevisao + 'T00:00:00');
+                let cor = 'text-gray-400';
+                if (dataRevisao < hoje) cor = 'text-red-400'; // Atrasada
+                if (dataRevisao.getTime() === hoje.getTime()) cor = 'text-yellow-400'; // Hoje
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-gray-700/50 p-3 rounded-lg';
+                item.innerHTML = `
+                    <div>
+                        <p class="font-bold">${revisao.materiaNome}</p>
+                        <p class="text-sm text-gray-500">${revisao.assuntoNome || 'Revisão geral da matéria'}</p>
+                        <p class="text-sm ${cor}"><i class="fas fa-calendar-alt mr-2"></i> ${dataRevisao.toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    <button data-revisao-id="${revisao.id}" class="delete-revisao-btn text-gray-500 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                `;
+                revisoesAgendadasList.appendChild(item);
+            });
+        }
+        document.querySelectorAll('.delete-revisao-btn').forEach(btn => btn.addEventListener('click', handleDeleteRevisao));
+
+        // Atualiza o alerta de revisões vencidas
+        const totalVencidas = state.revisoes.filter(r => new Date(r.dataRevisao + 'T00:00:00') < hoje);
+        if (totalVencidas.length > 0) {
+            alertaVencidas.innerHTML = `<span class="font-bold">Atenção!</span> Você tem ${totalVencidas.length} revisão(ões) vencida(s).`;
+            alertaVencidas.classList.remove('hidden');
+        } else {
+            alertaVencidas.classList.add('hidden');
+        }
+    };
+
+    const renderAnotacoes = () => {
+        anotacoesList.innerHTML = '';
+        if (state.anotacoes.length === 0) {
+            anotacoesList.innerHTML = '<p class="text-gray-500 text-center col-span-full">Clique em "Nova Anotação" para começar.</p>';
+            return;
+        }
+
+        const sortedAnotacoes = [...state.anotacoes].sort((a,b) => b.importancia - a.importancia);
+
+        sortedAnotacoes.forEach(anotacao => {
+            const card = document.createElement('div');
+            card.className = 'anotacao-card bg-gray-800 p-4 rounded-lg shadow-lg';
+            card.dataset.anotacaoId = anotacao.id;
+            
+            const importanciaColor = `hsl(${120 - (anotacao.importancia * 12)}, 70%, 50%)`; // Green (1) to Red (10)
+
+            card.innerHTML = `
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-lg font-bold">${anotacao.titulo}</h4>
+                        <span class="text-xs font-bold py-1 px-2 rounded-full" style="background-color: ${importanciaColor}; color: white;">${anotacao.importancia}</span>
+                    </div>
+                    <p class="text-sm text-blue-400 mb-3">${anotacao.materiaNome}</p>
+                    <p class="anotacao-card-content text-gray-300 text-sm">${anotacao.conteudo}</p>
+                </div>
+                <div class="text-right mt-4 text-xs text-gray-500">
+                    Clique para ver mais
+                </div>
+            `;
+            anotacoesList.appendChild(card);
+        });
     };
 
     const renderConcursos = () => {
@@ -1007,12 +1560,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const render = () => {
         saveData();
+        renderProfile();
         renderMainNav();
         renderMaterias();
 
         menuPrincipalPanel.classList.toggle('hidden', state.activeView !== 'menuPrincipal');
         desempenhoPanel.classList.toggle('hidden', state.activeView !== 'desempenho');
         metasPanel.classList.toggle('hidden', state.activeView !== 'metas');
+        revisoesPanel.classList.toggle('hidden', state.activeView !== 'revisoes');
+        anotacoesPanel.classList.toggle('hidden', state.activeView !== 'anotacoes');
         materiaPanel.classList.toggle('hidden', state.activeView !== 'materia');
 
         switch(state.activeView) {
@@ -1024,6 +1580,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'metas':
                 renderMetasPanel();
+                break;
+            case 'revisoes':
+                renderRevisoes();
+                break;
+            case 'anotacoes':
+                renderAnotacoes();
                 break;
             case 'materia':
                 const activeMateria = state.materias.find(m => m.id === state.activeMateriaId);
@@ -1058,6 +1620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const assunto = materia.assuntos.find(a => a.id === assuntoId);
         assunto[field] = value;
         if (assunto.acertadas > assunto.resolvidas) assunto.acertadas = assunto.resolvidas;
+        e.target.value = value; // Update input in case of correction
         render();
     }
 
@@ -1118,7 +1681,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const newName = editMateriaInput.value.trim();
         if (newName && editingMateriaId) {
             const materia = state.materias.find(m => m.id === editingMateriaId);
+            const oldName = materia.nome;
             materia.nome = newName;
+            // Atualiza o nome da matéria nas revisões agendadas
+            state.revisoes.forEach(r => {
+                if (r.materiaId === editingMateriaId) {
+                    r.materiaNome = newName;
+                }
+            });
+            state.anotacoes.forEach(a => {
+                if (a.materiaId === editingMateriaId) {
+                    a.materiaNome = newName;
+                }
+            });
             render();
             closeEditMateriaModal();
         }
@@ -1332,7 +1907,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const openSettingsModal = () => {
         settingsMetaDiariaInput.value = state.metas.diaria;
         settingsMetaSemanalInput.value = state.metas.semanal;
-        settingsMetaMensalInput.value = state.metas.mensal;
+        settingsMetaQuestoesInput.value = state.metas.questoes;
         settingsModal.style.display = 'block';
         settingsModalBackdrop.style.display = 'block';
     };
@@ -1346,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmSettingsBtn.addEventListener('click', () => {
         state.metas.diaria = parseInt(settingsMetaDiariaInput.value) || 0;
         state.metas.semanal = parseInt(settingsMetaSemanalInput.value) || 0;
-        state.metas.mensal = parseInt(settingsMetaMensalInput.value) || 0;
+        state.metas.questoes = parseInt(settingsMetaQuestoesInput.value) || 0;
         render();
         closeSettingsModal();
     });
@@ -1586,6 +2161,261 @@ document.addEventListener('DOMContentLoaded', () => {
         finishSessionModalBackdrop.style.display = 'none';
 
         render();
+    });
+
+    // --- LÓGICA DE REVISÕES ---
+    const openRevisaoModal = (materiaId) => {
+        agendandoRevisaoMateriaId = materiaId;
+        const materia = state.materias.find(m => m.id === materiaId);
+        if (!materia) return;
+        revisaoModalTitle.textContent = `Agendar Revisão: ${materia.nome}`;
+        
+        revisaoAssuntoSelect.innerHTML = '<option value="">Revisão Geral da Matéria</option>';
+        materia.assuntos.forEach(assunto => {
+            const option = document.createElement('option');
+            option.value = assunto.id;
+            option.textContent = assunto.nome;
+            revisaoAssuntoSelect.appendChild(option);
+        });
+
+        revisaoModal.style.display = 'block';
+        revisaoModalBackdrop.style.display = 'block';
+    };
+    const closeRevisaoModal = () => {
+        revisaoModal.style.display = 'none';
+        revisaoModalBackdrop.style.display = 'none';
+        agendandoRevisaoMateriaId = null;
+    };
+    cancelRevisaoBtn.addEventListener('click', closeRevisaoModal);
+    revisaoModalBackdrop.addEventListener('click', closeRevisaoModal);
+    document.querySelectorAll('.revisao-dias-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const dias = parseInt(e.target.dataset.dias);
+            const materia = state.materias.find(m => m.id === agendandoRevisaoMateriaId);
+            if (!materia) return;
+
+            const assuntoId = revisaoAssuntoSelect.value;
+            const assunto = materia.assuntos.find(a => a.id === assuntoId);
+
+            const dataRevisao = new Date();
+            dataRevisao.setDate(dataRevisao.getDate() + dias);
+
+            state.revisoes.push({
+                id: Date.now().toString(),
+                materiaId: materia.id,
+                materiaNome: materia.nome,
+                assuntoId: assunto ? assunto.id : null,
+                assuntoNome: assunto ? assunto.nome : '',
+                dataRevisao: dataRevisao.toISOString().split('T')[0]
+            });
+            
+            closeRevisaoModal();
+            render();
+        });
+    });
+    function handleDeleteRevisao(e) {
+        const revisaoId = e.currentTarget.dataset.revisaoId;
+        if (confirm('Tem certeza que deseja remover esta revisão agendada?')) {
+            state.revisoes = state.revisoes.filter(r => r.id !== revisaoId);
+            render();
+        }
+    }
+    
+    // Adiciona os listeners para os filtros de revisão
+    filtroRevisaoMateria.addEventListener('change', render);
+    filtroRevisaoData.addEventListener('change', render);
+
+    // --- LÓGICA DE ANOTAÇÕES ---
+    anotacoesList.addEventListener('click', (e) => {
+        const card = e.target.closest('.anotacao-card');
+        if (card) {
+            openViewAnotacaoModal(card.dataset.anotacaoId);
+        }
+    });
+
+    const openViewAnotacaoModal = (anotacaoId) => {
+        viewingAnotacaoId = anotacaoId;
+        const anotacao = state.anotacoes.find(a => a.id === anotacaoId);
+        if (!anotacao) return;
+
+        document.getElementById('view-anotacao-titulo').textContent = anotacao.titulo;
+        document.getElementById('view-anotacao-materia').textContent = anotacao.materiaNome;
+        const importanciaEl = document.getElementById('view-anotacao-importancia');
+        importanciaEl.textContent = anotacao.importancia;
+        const importanciaColor = `hsl(${120 - (anotacao.importancia * 12)}, 70%, 50%)`;
+        importanciaEl.style.backgroundColor = importanciaColor;
+        importanciaEl.style.color = 'white';
+        document.getElementById('view-anotacao-conteudo').textContent = anotacao.conteudo;
+
+        viewAnotacaoModal.style.display = 'block';
+        viewAnotacaoModalBackdrop.style.display = 'block';
+    };
+
+    const closeViewAnotacaoModal = () => {
+        viewAnotacaoModal.style.display = 'none';
+        viewAnotacaoModalBackdrop.style.display = 'none';
+        viewingAnotacaoId = null;
+    };
+    document.getElementById('close-view-anotacao-btn').addEventListener('click', closeViewAnotacaoModal);
+    viewAnotacaoModalBackdrop.addEventListener('click', closeViewAnotacaoModal);
+
+    document.getElementById('edit-viewed-anotacao-btn').addEventListener('click', () => {
+        const idToEdit = viewingAnotacaoId;
+        closeViewAnotacaoModal();
+        openAnotacaoModal(idToEdit);
+    });
+
+    const openAnotacaoModal = (anotacaoId = null) => {
+        if (state.materias.length === 0) {
+            alert('Cadastre uma matéria primeiro para criar uma anotação.');
+            return;
+        }
+
+        editingAnotacaoId = anotacaoId;
+        anotacaoMateriaSelect.innerHTML = '';
+        state.materias.forEach(m => {
+            const option = document.createElement('option');
+            option.value = m.id;
+            option.textContent = m.nome;
+            anotacaoMateriaSelect.appendChild(option);
+        });
+
+        if (anotacaoId) {
+            const anotacao = state.anotacoes.find(a => a.id === anotacaoId);
+            anotacaoModalTitle.textContent = 'Editar Anotação';
+            anotacaoTituloInput.value = anotacao.titulo;
+            anotacaoMateriaSelect.value = anotacao.materiaId;
+            anotacaoImportanciaInput.value = anotacao.importancia;
+            anotacaoConteudoTextarea.value = anotacao.conteudo;
+        } else {
+            anotacaoModalTitle.textContent = 'Nova Anotação';
+            anotacaoTituloInput.value = '';
+            anotacaoMateriaSelect.value = '';
+            anotacaoImportanciaInput.value = '';
+            anotacaoConteudoTextarea.value = '';
+        }
+
+        anotacaoModal.style.display = 'block';
+        anotacaoModalBackdrop.style.display = 'block';
+    };
+    const closeAnotacaoModal = () => {
+        anotacaoModal.style.display = 'none';
+        anotacaoModalBackdrop.style.display = 'none';
+        editingAnotacaoId = null;
+    };
+    const handleConfirmAnotacao = () => {
+        const titulo = anotacaoTituloInput.value.trim();
+        const materiaId = anotacaoMateriaSelect.value;
+        const importancia = parseInt(anotacaoImportanciaInput.value);
+        const conteudo = anotacaoConteudoTextarea.value.trim();
+
+        if (!titulo || !materiaId || !importancia || !conteudo) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+        if (importancia < 1 || importancia > 10) {
+            alert('A importância deve ser um número entre 1 e 10.');
+            return;
+        }
+
+        const materia = state.materias.find(m => m.id === materiaId);
+
+        if (editingAnotacaoId) {
+            // Editando
+            const anotacao = state.anotacoes.find(a => a.id === editingAnotacaoId);
+            anotacao.titulo = titulo;
+            anotacao.materiaId = materiaId;
+            anotacao.materiaNome = materia.nome;
+            anotacao.importancia = importancia;
+            anotacao.conteudo = conteudo;
+        } else {
+            // Criando
+            state.anotacoes.push({
+                id: Date.now().toString(),
+                titulo,
+                materiaId,
+                materiaNome: materia.nome,
+                importancia,
+                conteudo
+            });
+        }
+        
+        closeAnotacaoModal();
+        render();
+    };
+    
+    openAddAnotacaoModalBtn.addEventListener('click', () => openAnotacaoModal());
+    cancelAnotacaoBtn.addEventListener('click', closeAnotacaoModal);
+    anotacaoModalBackdrop.addEventListener('click', closeAnotacaoModal);
+    confirmAnotacaoBtn.addEventListener('click', handleConfirmAnotacao);
+
+    // --- LÓGICA DO PERFIL ---
+    const openProfileModal = () => {
+        profileNameInput.value = state.userProfile.name;
+        profileImageInput.value = ''; // Limpa o campo de URL
+        profileImageUpload.value = ''; // Limpa o campo de upload
+        profileModal.style.display = 'block';
+        profileModalBackdrop.style.display = 'block';
+    };
+    const closeProfileModal = () => {
+        profileModal.style.display = 'none';
+        profileModalBackdrop.style.display = 'none';
+    };
+    profileSection.addEventListener('click', openProfileModal);
+    cancelProfileBtn.addEventListener('click', closeProfileModal);
+    profileModalBackdrop.addEventListener('click', closeProfileModal);
+    confirmProfileBtn.addEventListener('click', () => {
+        const newName = profileNameInput.value.trim();
+        const newImageUrl = profileImageInput.value.trim();
+        const file = profileImageUpload.files[0];
+
+        if (newName) {
+            state.userProfile.name = newName;
+        }
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.userProfile.imageUrl = e.target.result;
+                render();
+            };
+            reader.readAsDataURL(file);
+        } else if (newImageUrl) {
+            state.userProfile.imageUrl = newImageUrl;
+        }
+        
+        closeProfileModal();
+        render();
+    });
+
+    // --- LÓGICA DO CHECKLIST DE METAS ---
+    document.getElementById('add-checklist-item-btn').addEventListener('click', () => {
+        const text = prompt('Qual é a sua nova tarefa para a semana?');
+        if (text && text.trim()) {
+            state.checklist.push({
+                id: Date.now().toString(),
+                text: text.trim(),
+                done: false
+            });
+            render();
+        }
+    });
+
+    document.getElementById('checklist-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('goal-checkbox')) {
+            const item = state.checklist.find(i => i.id === e.target.dataset.id);
+            if (item) {
+                item.done = e.target.checked;
+                render();
+            }
+        }
+        if (e.target.closest('.delete-checklist-item-btn')) {
+            const btn = e.target.closest('.delete-checklist-item-btn');
+            if (confirm('Deseja excluir esta tarefa?')) {
+                state.checklist = state.checklist.filter(i => i.id !== btn.dataset.id);
+                render();
+            }
+        }
     });
     
     // --- INICIALIZAÇÃO ---
